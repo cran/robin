@@ -1,6 +1,4 @@
 ## ----message=FALSE, warning=FALSE, paged.print=TRUE----------------------
-library(devtools)
-install_github("ValeriaPolicastro/robin",force=TRUE)
 library("robin")
 
 ## ------------------------------------------------------------------------
@@ -35,7 +33,11 @@ legend=c("real data", "null model"), measure="vi")
 ## ------------------------------------------------------------------------
 robinFDATest(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
              measure="vi")
+
+## ------------------------------------------------------------------------
 robinGPTest(ratio=proc$ratios)
+
+## ------------------------------------------------------------------------
 robinAUC(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
              measure="vi")
 
@@ -56,5 +58,7 @@ legend=c("fastGreedy", "louvain"), title="FastGreedy vs Louvain")
 ## ------------------------------------------------------------------------
 robinFDATest(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi")
 robinGPTest(ratio=comp$ratios1vs2)
+
+## ------------------------------------------------------------------------
 robinAUC(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi")
 
