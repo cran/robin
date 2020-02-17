@@ -4,8 +4,12 @@
 \alias{robinAUC}
 \title{robinAUC}
 \usage{
-robinAUC(graph, model1, model2, measure = c("vi", "nmi", "split.join",
-  "adjusted.rand"))
+robinAUC(
+  graph,
+  model1,
+  model2,
+  measure = c("vi", "nmi", "split.join", "adjusted.rand")
+)
 }
 \arguments{
 \item{graph}{The output of prepGraph.}
@@ -23,7 +27,7 @@ Mean2 output of the comparison function).}
 A list
 }
 \description{
-Calculate the area under the two curves with a spline approach.
+This function calculates the area under two curves with a spline approach.
 }
 \examples{
 my_file <- system.file("example/football.gml", package="robin")

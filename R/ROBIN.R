@@ -1,11 +1,11 @@
-######PREPARATION GRAPH########## 
+###### PREPARATION GRAPH ########### 
 
 #' prepGraph
 #' 
-#' @description The prepGraph function is able to read graphs from a file and 
-#' to prepare them for the analysis.
+#' @description This function reads graphs from a file and 
+#' prepares them for the analysis.
 #'
-#' @param file The file to read from.
+#' @param file The input file containing the graph.
 #' @param file.format Character constant giving the file format. Right now
 #' as_edgelist, pajek, graphml, gml, ncol, lgl, dimacs, graphdb and igraph are
 #' supported
@@ -58,46 +58,14 @@ prepGraph <- function(file,
         graph <- igraph::delete.vertices(net, ind)
         graph <- igraph::simplify(graph)
     }
-    ##Other method:
-    # method <- match.arg(method)
-    # if(method == "igraph")
-    # {
-    #     graph <- igraph::read_graph(file, format=file.format, 
-    #                                 directed=is.directed)
-    # } else if(method == "robin") {
-    #     edge <- read.table(file, quote="\"")
-    #     edge <- as.matrix(edge)
-    #     
-    #     #graph_from_edgelist(edge,direct=FALSE)
-    #     
-    #     vet1 <- as.vector(t(edge))
-    #     un <- unique(sort(vet1))
-    #     if(max(un) != length(un)) 
-    #     { ##se non vi sono tutti i nodi il massimo del vettore 
-    #         #non è uguale alla lunghezza
-    #         id <- seq(1, length(un))  ##il nome dei nodi è vet 
-    #         #che è uguale all'id, altrimenti è vet1
-    #         vet <- vet1
-    #         for(i in c(1:length(un))) 
-    #         {
-    #             ind <- which(vet1 == un[i])
-    #             vet[ind] <- id[i]
-    #         }
-    #         edge <- matrix(vet, ncol=2, byrow=TRUE)
-    #         graph <- igraph::graph(vet, directed=is.directed)
-    #     } else {
-    #         graph <- igraph::graph(vet1, directed=is.directed)
-    #     }
-    # }
-    # graph <- igraph::simplify(graph) 
-    return(graph)
+   return(graph)
 }
 
 
-######GRAPH RANDOM#########
+####### GRAPH RANDOM #########
 #' random
 #'
-#' @description Randomly rewire the edges while preserving the original graph's 
+#' @description This function randomly rewires the edges while preserving the original graph's 
 #' degree distribution.
 #' @param graph The output of prepGraph.
 #'
@@ -119,11 +87,12 @@ random <- function(graph)
 }
 
 
-#####COMMUNITY METHOD####    
+###### COMMUNITY METHOD ######    
 #' methodCommunity
 #' 
 #' @description This function detects the community structure of a graph.
-#' The community structure are found by all functions implemented in igraph.
+#' To detect the community structure the user can choose one of the methods implemented 
+#' in igraph.
 #' @param graph The output of prepGraph.
 #' @param method The clustering method, one of "walktrap", "edgeBetweenness", 
 #' "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp", "infomap",
@@ -131,7 +100,7 @@ random <- function(graph)
 #' @param FUN in case the @method parameter is "other" there is the possibility 
 #' to use a personal function passing its name through this parameter.
 #' The personal parameter has to take as input the @graph and the @weights 
-#' (that can be NULL), moreover it has to return a communities object.
+#' (that can be NULL), and has to return a community object.
 #' @param weights  Optional positive weight vector. If the graph has a weight 
 #' edge attribute, then this is used by default. Supply NA here if the graph 
 #' has a weight edge attribute, but you want to ignore it. Larger edge weights
@@ -139,7 +108,7 @@ random <- function(graph)
 #' "infomap" method.
 #' @param steps The number of steps to take, this is actually the number of 
 #' tries to make a step. It is not a particularly useful parameter. This 
-#' argument is settable only for "leadingEigen"and"walktrap" method.
+#' argument is settable only for "leadingEigen" and "walktrap" method.
 #' @param spins Integer constant, the number of spins to use. This is the upper 
 #' limit for the number of communities. It is not a problem to supply a 
 #' (reasonably) big number here, in which case some spin states will be 
@@ -148,7 +117,7 @@ random <- function(graph)
 #' The length must match the number of edges in the graph. By default the 
 #' ‘weight’ edge attribute is used as weights. If it is not present, then all
 #' edges are considered to have the same weight. Larger edge weights correspond 
-#' to stronger connections.  This argument is settable only for "infomap"
+#' to stronger connections. This argument is settable only for "infomap"
 #'  method.
 #' @param v.weights If not NULL, then a numeric vector of vertex weights. The
 #' length must match the number of vertices in the graph. By default the 
@@ -163,7 +132,7 @@ random <- function(graph)
 #' betweenness for directed graphs. This argument is settable only for 
 #' "edgeBetweenness" method.
 #'
-#' @return a Communities object.
+#' @return A Communities object.
 #' @import igraph
 #' @export
 #'
@@ -231,11 +200,11 @@ methodCommunity <- function(graph,
     return(communities)
 }
 
-#####MEMBERSHIP COMMUNITIES####    
+##### MEMBERSHIP COMMUNITIES ######    
 #' membershipCommunities
 #' 
-#' @description This function gives the membership vector of the community 
-#' structure. The community structure are found by all functions implemented 
+#' @description This function computes the membership vector of the community 
+#' structure. To detect the community structure the user can choose one of the methods implemented 
 #' in igraph.
 #' @param graph The output of prepGraph.
 #' @param method The clustering method, one of "walktrap", "edgeBetweenness", 
@@ -273,7 +242,7 @@ methodCommunity <- function(graph,
 #' betweenness for directed graphs. This argument is settable only for 
 #' "edgeBetweenness" method.
 #' 
-#' @return returns a numeric vector, one number for each vertex in the graph; 
+#' @return Returns a numeric vector, one number for each vertex in the graph; 
 #' the membership vector of the community structure.
 #' @import igraph
 #' @export
@@ -318,7 +287,7 @@ membershipCommunities<- function(graph,
 #' @description Graphical interactive representation of the network.
 #' @param graph The output of prepGraph.
 #'
-#' @return creates simple D3 JavaScript network graph,an interactive plot.
+#' @return Creates an interactive plot, a D3 JavaScript network graph.
 #' @import networkD3
 #' @export
 #'
@@ -330,6 +299,7 @@ plotGraph <- function(graph)
 {
     graph_d3 <- networkD3::igraph_to_networkD3(g=graph)
     plot <- networkD3::simpleNetwork(graph_d3$links, opacity=0.8, zoom=TRUE,
+                                     linkColour = "B1AEAE", nodeColour = "#2E66AC",
                                      fontSize=12)
     return(plot)
 }   
@@ -339,13 +309,13 @@ plotGraph <- function(graph)
 #' plotComm
 #' 
 #' @description Graphical interactive representation of the network and its 
-#' communities
+#' communities.
 #' 
 #' @param graph The output of prepGraph.
 #' @param members A membership vector of the community structure, the output of
 #' membershipCommunities. 
 #'
-#' @return creates an interactive plot with colorful communities, a D3 
+#' @return Creates an interactive plot with colorful communities, a D3 
 #' JavaScript network graph.
 #' @import networkD3 
 #' @importFrom methods is
@@ -451,7 +421,7 @@ rewireOnl <- function(data, number)
 ########  ROBIN PROCEDURE ROBUSTNESS#######
 #' robinRobust
 #'
-#' @description A procedure to examine the stability of the partition recovered 
+#' @description This functions implements a procedure to examine the stability of the partition recovered by some algorithm 
 #' against random perturbations of the original graph structure.
 #' @param graph The output of prepGraph.
 #' @param graphRandom The output of random function.
@@ -459,9 +429,9 @@ rewireOnl <- function(data, number)
 #' "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp", "infomap",
 #' "optimal".
 #' @param FUN see \code{\link{methodCommunity}}.
-#' @param measure The stability measure "vi", "nmi", "split.join", 
+#' @param measure The stability measure, one of "vi", "nmi", "split.join", 
 #' "adjusted.rand".
-#' @param type The type of robin costruction dependent or independent data
+#' @param type The type of robin costruction, dependent or independent data
 #' @param weights this argument is not settable for "infomap" method.
 #' @param steps this argument is settable only for "leadingEigen"and"walktrap" 
 #' method.
@@ -794,14 +764,14 @@ robinRobust <- function(graph, graphRandom,
 ############PLOT##############
 #' plotRobin
 #'
-#' @description The plot of the two curves, the measures of the null model and 
+#' @description This function plots two curves: the measure of the null model and the measure
 #' of the real graph.
 #' @param graph The output of prepGraph
 #' @param model1 The Mean output of the robinRobust function or the Mean1 
 #' output of robinCompare.
 #' @param model2 The MeanRandom output of the robinRobust function or the Mean2 
 #' output of robinCompare.
-#' @param measure The stability measure "vi", "nmi", "split.join", 
+#' @param measure The stability measure: one of "vi", "nmi", "split.join", 
 #' "adjusted.rand".
 #' @param legend The legend for the graph. The default is c("model1", 
 #' "model2").
@@ -867,8 +837,8 @@ plotRobin <- function(graph,
 ############### COMPARISON DIFFERENT METHODS ##########
 #' robinCompare
 #'
-#' @description  A procedure to compare two different methods of community 
-#' detection.
+#' @description  This function compares the robustness of two community 
+#' detection algorithms.
 #' @param graph The output of prepGraph.
 #' @param method1 The first clustering method, one of "walktrap", 
 #' "edgeBetweenness", "fastGreedy", "louvain", "spinglass", "leadingEigen",
@@ -876,13 +846,13 @@ plotRobin <- function(graph,
 #' @param method2 The second custering method one of "walktrap",
 #' "edgeBetweenness","fastGreedy", "louvain", "spinglass", "leadingEigen",
 #' "labelProp", "infomap","optimal".
-#' @param FUN1 its a personal designed function when method1 is "others". 
+#' @param FUN1 personal designed function when method1 is "others". 
 #' see \code{\link{methodCommunity}}.
-#' @param FUN2 its a personal designed function when method2 is "others". 
+#' @param FUN2 personal designed function when method2 is "others". 
 #' see \code{\link{methodCommunity}}.
-#' @param measure The stability measure "vi", "nmi", "split.join", 
+#' @param measure The stability measure, one of "vi", "nmi", "split.join", 
 #' "adjusted.rand".
-#' @param type The type of robin costruction dependent or independent.
+#' @param type The type of robin costruction, dependent or independent.
 #' @param weights This argument is not settable for "infomap" method.
 #' @param steps This argument is settable only for "leadingEigen"and"walktrap" 
 #' method.
@@ -1238,7 +1208,7 @@ createITPSplineResult <- function(graph, model1, model2,
 
 #' robinGPTest
 #'
-#' @description This function makes a test between the curves, calculating the 
+#' @description This function implements the GP testing procedure and calculates the 
 #' Bayes factor.
 #' @param ratio The ratios output of the robinRobust function (or the ratios1vs2 
 #' output of the comparison function). 
@@ -1305,8 +1275,8 @@ robinGPTest <- function(ratio)
 
 #' robinFDATest
 #'
-#'@description The function implements the Interval Testing Procedure for 
-#'testing the difference between the two curves.
+#'@description The function implements the Interval Testing Procedure to 
+#'test the difference between two curves.
 #'
 #' @param graph The output of prepGraph.
 #' @param model1 The Mean output of the robinRobust function (or the Mean1 
@@ -1318,7 +1288,7 @@ robinGPTest <- function(ratio)
 #' @param legend The legend for the graph. The default is c("real data", 
 #' "null model").
 #'
-#' @return Two plots.
+#' @return Two plots: the fitted curves and the adjusted p-values. A vector of the adjusted p-values. 
 #' @import igraph ggplot2 fdatest graphics
 #' @export
 #'
@@ -1328,41 +1298,26 @@ robinGPTest <- function(ratio)
 #' graphRandom <- random(graph=graph)
 #' Proc <- robinRobust(graph=graph, graphRandom=graphRandom, method="louvain",
 #' measure="vi",type="independent")
-#' robinFDATest(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom)
+#' robinFDATest(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom, measure="vi")
 robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
                         "split.join", "adjusted.rand"),
                         legend=c("real data", "null model"))
 {
-    ##To do it with ggplot:
-    #  N <- igraph::vcount(graph)
-    # mvimodel1 <- cbind(as.vector((model1)/log2(N)), legend[1], 
-    #                     seq(1,10), rep((seq(0,60,5)/100), each=10))
-    # mvimodel2 <- cbind(as.vector((model2)/log2(N)), legend[2], 
-    #                     seq(11,20),rep((seq(0,60,5)/100),each=10))
-    # mvi <- rbind(mvimodel1, mvimodel2)
-    # colnames(mvi) <- c("mvi","model","s","percPert")
-    # dataFrame <- data.frame(mvi)
-    # plot1 <- ggplot2::ggplot(dataFrame, ggplot2::aes(x=percPert, 
-    #             y=as.numeric(as.character(mvi)), color= model, group=s)) + 
-    #     ggplot2::geom_line() + 
-    #     ggplot2::xlab("Percentage of perturbation") +
-    #     ggplot2::ylab("Measure")+
-    #     ggplot2::ggtitle("Robin plot")
-    # plot1
-    # print(plot1)
     perc <- rep((seq(0,60,5)/100))
     ITPresult <- createITPSplineResult(graph, model1, model2, measure)
-    plot2 <- graphics::plot(ITPresult, main='Measure', xrange=c(0,0.6), xlab='perturbation', 
+    plot2 <- graphics::plot(ITPresult, main='Measure', xrange=c(0,0.6), xlab='Percentage of perturbation', 
                 ylab="Measure")
     graphics::lines(perc, rep(0.05, 13), type="l", col="red")
     
+    adj.pvalue<-ITPresult$corrected.pval
     print(plot2)
+    return(adj.pvalue)
 }  
 
 ########### AREA UNDER THE CURVE    ##############
 #' robinAUC
 #'
-#' @description Calculate the area under the two curves with a spline approach. 
+#' @description This function calculates the area under two curves with a spline approach. 
 #' @param graph The output of prepGraph.
 #' @param model1 The Mean output of the robinRobust function (or the Mean1 
 #' output of the comparison function).

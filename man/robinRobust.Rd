@@ -4,12 +4,22 @@
 \alias{robinRobust}
 \title{robinRobust}
 \usage{
-robinRobust(graph, graphRandom, method = c("walktrap", "edgeBetweenness",
-  "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp",
-  "infomap", "optimal", "other"), FUN = NULL, measure = c("vi", "nmi",
-  "split.join", "adjusted.rand"), type = c("independent", "dependent"),
-  directed = FALSE, weights = NULL, steps = 4, spins = 25,
-  e.weights = NULL, v.weights = NULL, nb.trials = 10)
+robinRobust(
+  graph,
+  graphRandom,
+  method = c("walktrap", "edgeBetweenness", "fastGreedy", "louvain", "spinglass",
+    "leadingEigen", "labelProp", "infomap", "optimal", "other"),
+  FUN = NULL,
+  measure = c("vi", "nmi", "split.join", "adjusted.rand"),
+  type = c("independent", "dependent"),
+  directed = FALSE,
+  weights = NULL,
+  steps = 4,
+  spins = 25,
+  e.weights = NULL,
+  v.weights = NULL,
+  nb.trials = 10
+)
 }
 \arguments{
 \item{graph}{The output of prepGraph.}
@@ -22,10 +32,10 @@ robinRobust(graph, graphRandom, method = c("walktrap", "edgeBetweenness",
 
 \item{FUN}{see \code{\link{methodCommunity}}.}
 
-\item{measure}{The stability measure "vi", "nmi", "split.join", 
+\item{measure}{The stability measure, one of "vi", "nmi", "split.join", 
 "adjusted.rand".}
 
-\item{type}{The type of robin costruction dependent or independent data}
+\item{type}{The type of robin costruction, dependent or independent data}
 
 \item{directed}{This argument is settable only for "edgeBetweenness" method.}
 
@@ -46,7 +56,7 @@ method.}
 A list object.
 }
 \description{
-A procedure to examine the stability of the partition recovered 
+This functions implements a procedure to examine the stability of the partition recovered by some algorithm 
 against random perturbations of the original graph structure.
 }
 \examples{

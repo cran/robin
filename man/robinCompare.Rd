@@ -4,15 +4,24 @@
 \alias{robinCompare}
 \title{robinCompare}
 \usage{
-robinCompare(graph, method1 = c("walktrap", "edgeBetweenness",
-  "fastGreedy", "leadingEigen", "louvain", "spinglass", "labelProp",
-  "infomap", "optimal", "other"), method2 = c("walktrap",
-  "edgeBetweenness", "fastGreedy", "leadingEigen", "louvain", "spinglass",
-  "labelProp", "infomap", "optimal", "other"), FUN1 = NULL,
-  FUN2 = NULL, measure = c("vi", "nmi", "split.join", "adjusted.rand"),
-  type = c("independent", "dependent"), directed = FALSE,
-  weights = NULL, steps = 4, spins = 25, e.weights = NULL,
-  v.weights = NULL, nb.trials = 10)
+robinCompare(
+  graph,
+  method1 = c("walktrap", "edgeBetweenness", "fastGreedy", "leadingEigen", "louvain",
+    "spinglass", "labelProp", "infomap", "optimal", "other"),
+  method2 = c("walktrap", "edgeBetweenness", "fastGreedy", "leadingEigen", "louvain",
+    "spinglass", "labelProp", "infomap", "optimal", "other"),
+  FUN1 = NULL,
+  FUN2 = NULL,
+  measure = c("vi", "nmi", "split.join", "adjusted.rand"),
+  type = c("independent", "dependent"),
+  directed = FALSE,
+  weights = NULL,
+  steps = 4,
+  spins = 25,
+  e.weights = NULL,
+  v.weights = NULL,
+  nb.trials = 10
+)
 }
 \arguments{
 \item{graph}{The output of prepGraph.}
@@ -25,16 +34,16 @@ robinCompare(graph, method1 = c("walktrap", "edgeBetweenness",
 "edgeBetweenness","fastGreedy", "louvain", "spinglass", "leadingEigen",
 "labelProp", "infomap","optimal".}
 
-\item{FUN1}{its a personal designed function when method1 is "others". 
+\item{FUN1}{personal designed function when method1 is "others". 
 see \code{\link{methodCommunity}}.}
 
-\item{FUN2}{its a personal designed function when method2 is "others". 
+\item{FUN2}{personal designed function when method2 is "others". 
 see \code{\link{methodCommunity}}.}
 
-\item{measure}{The stability measure "vi", "nmi", "split.join", 
+\item{measure}{The stability measure, one of "vi", "nmi", "split.join", 
 "adjusted.rand".}
 
-\item{type}{The type of robin costruction dependent or independent.}
+\item{type}{The type of robin costruction, dependent or independent.}
 
 \item{directed}{This argument is settable only for "edgeBetweenness" method.}
 
@@ -55,8 +64,8 @@ method.}
 A list object
 }
 \description{
-A procedure to compare two different methods of community 
-detection.
+This function compares the robustness of two community 
+detection algorithms.
 }
 \examples{
 my_file <- system.file("example/football.gml", package="robin")

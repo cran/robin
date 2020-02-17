@@ -4,11 +4,19 @@
 \alias{membershipCommunities}
 \title{membershipCommunities}
 \usage{
-membershipCommunities(graph, method = c("walktrap", "edgeBetweenness",
-  "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp",
-  "infomap", "optimal", "other"), FUN = NULL, directed = FALSE,
-  weights = NULL, steps = 4, spins = 25, e.weights = NULL,
-  v.weights = NULL, nb.trials = 10)
+membershipCommunities(
+  graph,
+  method = c("walktrap", "edgeBetweenness", "fastGreedy", "louvain", "spinglass",
+    "leadingEigen", "labelProp", "infomap", "optimal", "other"),
+  FUN = NULL,
+  directed = FALSE,
+  weights = NULL,
+  steps = 4,
+  spins = 25,
+  e.weights = NULL,
+  v.weights = NULL,
+  nb.trials = 10
+)
 }
 \arguments{
 \item{graph}{The output of prepGraph.}
@@ -57,12 +65,12 @@ integer value equal or larger than 1). This argument is settable only for
 "infomap" method.}
 }
 \value{
-returns a numeric vector, one number for each vertex in the graph; 
+Returns a numeric vector, one number for each vertex in the graph; 
 the membership vector of the community structure.
 }
 \description{
-This function gives the membership vector of the community 
-structure. The community structure are found by all functions implemented 
+This function computes the membership vector of the community 
+structure. To detect the community structure the user can choose one of the methods implemented 
 in igraph.
 }
 \examples{

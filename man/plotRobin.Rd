@@ -4,9 +4,14 @@
 \alias{plotRobin}
 \title{plotRobin}
 \usage{
-plotRobin(graph, model1, model2, measure = c("vi", "nmi", "split.join",
-  "adjusted.rand"), legend = c("model1", "model2"),
-  title = "Robin plot")
+plotRobin(
+  graph,
+  model1,
+  model2,
+  measure = c("vi", "nmi", "split.join", "adjusted.rand"),
+  legend = c("model1", "model2"),
+  title = "Robin plot"
+)
 }
 \arguments{
 \item{graph}{The output of prepGraph}
@@ -17,7 +22,7 @@ output of robinCompare.}
 \item{model2}{The MeanRandom output of the robinRobust function or the Mean2 
 output of robinCompare.}
 
-\item{measure}{The stability measure "vi", "nmi", "split.join", 
+\item{measure}{The stability measure: one of "vi", "nmi", "split.join", 
 "adjusted.rand".}
 
 \item{legend}{The legend for the graph. The default is c("model1", 
@@ -29,7 +34,7 @@ output of robinCompare.}
 A ggplot object.
 }
 \description{
-The plot of the two curves, the measures of the null model and 
+This function plots two curves: the measure of the null model and the measure
 of the real graph.
 }
 \examples{
