@@ -18,7 +18,8 @@ robinRobust(
   spins = 25,
   e.weights = NULL,
   v.weights = NULL,
-  nb.trials = 10
+  nb.trials = 10,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -51,13 +52,18 @@ method.}
 \item{v.weights}{This argument is settable only for "infomap" method.}
 
 \item{nb.trials}{This argument is settable only for "infomap" method.}
+
+\item{verbose}{flag for verbose output (default as FALSE).}
 }
 \value{
-A list object.
+A list object with two matrices:
+- the matrix "Mean" with the means of the procedure for the graph
+- the matrix "MeanRandom" with the means of the procedure for the random graph.
 }
 \description{
-This functions implements a procedure to examine the stability of the partition recovered by some algorithm 
-against random perturbations of the original graph structure.
+This functions implements a procedure to examine the stability 
+of the partition recovered by some algorithm against random perturbations 
+of the original graph structure.
 }
 \examples{
 my_file <- system.file("example/football.gml", package="robin")

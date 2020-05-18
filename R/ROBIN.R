@@ -16,6 +16,7 @@
 #' default is FALSE.
 #' @param header A logical value indicating whether the file contains 
 #' the names of the variables as its first line.This argument is settable 
+#' @param verbose flag for verbose output (default as FALSE).
 #' for the edgelist format.The default is FALSE.
 #' @return An igraph object, which do not contain loop and multiple edges.
 #' @import igraph
@@ -29,13 +30,15 @@ prepGraph <- function(file,
                         file.format=c("edgelist", "pajek", "ncol", "lgl",
                                       "graphml", "dimacs", "graphdb", "gml",
                                       "dl","igraph"),
-                        numbers= FALSE,
+                        numbers=FALSE,
                         directed=FALSE,
-                        header=FALSE)
+                        header=FALSE,
+                        verbose=FALSE)
 { 
     file.format <- match.arg(file.format)
+    if(verbose) cat("Detected file format: ", file.format, "\n")
     if (file.format =="igraph")
-    {
+    { 
         graph <- igraph::simplify(file) 
     }else if (file.format == "gml") {
         net <- igraph::read_graph(file=file, format=file.format)
@@ -68,7 +71,8 @@ prepGraph <- function(file,
 #' @description This function randomly rewires the edges while preserving the original graph's 
 #' degree distribution.
 #' @param graph The output of prepGraph.
-#'
+#' @param verbose flag for verbose output (default as FALSE)
+#' 
 #' @return An igraph object, a randomly rewired graph.
 #' @import igraph
 #' @export
@@ -77,8 +81,9 @@ prepGraph <- function(file,
 #' my_file <- system.file("example/football.gml", package="robin")
 #' graph <- prepGraph(file=my_file, file.format="gml")
 #' graphRandom <- random(graph=graph)
-random <- function(graph)
+random <- function(graph, verbose=FALSE)
 {
+    if(verbose) cat("Randomizing the graph edges.\n")
     z <- igraph::gsize(graph) ## number of edges
     graphRandom <- igraph::rewire(graph, 
                             with=igraph::keeping_degseq(loops=FALSE, niter=z))
@@ -131,6 +136,7 @@ random <- function(graph)
 #' @param directed Logical constant, whether to calculate directed edge 
 #' betweenness for directed graphs. This argument is settable only for 
 #' "edgeBetweenness" method.
+#' @param verbose flag for verbose output (default as FALSE)
 #'
 #' @return A Communities object.
 #' @import igraph
@@ -152,9 +158,12 @@ methodCommunity <- function(graph,
                             spins=25, 
                             e.weights=NULL, 
                             v.weights=NULL, 
-                            nb.trials=10)
+                            nb.trials=10, 
+                            verbose=FALSE)
 {   
+    
     method <- match.arg(method)
+    if(verbose) cat("Applying community method ", method, "\n")
     if(is.null(weights) &
        (sum(method %in% c("walktrap", "edgeBetweenness", "fastGreedy") == 1 )))
     {
@@ -421,8 +430,9 @@ rewireOnl <- function(data, number)
 ########  ROBIN PROCEDURE ROBUSTNESS#######
 #' robinRobust
 #'
-#' @description This functions implements a procedure to examine the stability of the partition recovered by some algorithm 
-#' against random perturbations of the original graph structure.
+#' @description This functions implements a procedure to examine the stability 
+#' of the partition recovered by some algorithm against random perturbations 
+#' of the original graph structure.
 #' @param graph The output of prepGraph.
 #' @param graphRandom The output of random function.
 #' @param method The clustering method, one of "walktrap", "edgeBetweenness", 
@@ -440,8 +450,12 @@ rewireOnl <- function(data, number)
 #' @param v.weights This argument is settable only for "infomap" method.
 #' @param nb.trials This argument is settable only for "infomap" method.
 #' @param directed This argument is settable only for "edgeBetweenness" method.
-#'
-#' @return A list object.
+#' @param verbose flag for verbose output (default as FALSE).
+#' 
+#' @return A list object with two matrices:
+#' - the matrix "Mean" with the means of the procedure for the graph
+#' - the matrix "MeanRandom" with the means of the procedure for the random graph. 
+#' 
 #' @import igraph
 #' @export
 #'
@@ -465,12 +479,13 @@ robinRobust <- function(graph, graphRandom,
                 spins=25, 
                 e.weights=NULL, 
                 v.weights=NULL, 
-                nb.trials=10) 
+                nb.trials=10,
+                verbose=FALSE) 
 {   
     measure <- match.arg(measure)
     type<- match.arg(type)
     method <- match.arg(method)
-        nrep <- 10
+    nrep <- 10
     comReal <- membershipCommunities(graph=graph, method=method, 
                                     FUN=FUN,
                                     directed=directed,
@@ -498,6 +513,7 @@ robinRobust <- function(graph, graphRandom,
     graphRewire <- NULL
     count <- 1
     nRewire <- seq(0,60,5)
+    if(verbose) cat("Detected robin method ", type, " type\n")
     #INDEPENDENT    
     if(type == "independent") 
     {
@@ -607,7 +623,7 @@ robinRobust <- function(graph, graphRandom,
                 MeanRandom[s, count] <- mean(vectRandom)
                 Mean[s, count] <- mean(vector)
             }
-            print(z) 
+            if(verbose) cat("Perturbed ", z, " nodes\n")
         }
   #DEPENDENT 
     }else{
@@ -734,26 +750,19 @@ robinRobust <- function(graph, graphRandom,
             Mean <- cbind(Mean,Mean1)
             MeanRandom <- cbind(MeanRandom,MeanRandom1)
             z1 <- igraph::gsize(graph)
-            print(z1)
+            #print(z1)
+            if(verbose) cat("Perturbed ", z, " nodes\n")
             }
     }
     colnames(measureRandom) <- nRewire
     colnames(measureReal) <- nRewire
+    #the matrices "measureReal" and "measureRandom" with the 
+    #measures calculated at each step of the procedure, respectively for the real and 
+    #the random graph.
     colnames(MeanRandom) <- nRewire
     colnames(Mean) <- nRewire
-    nn <- rep(nRewire, each=nrep) 
-    ratios <- log2((Mean+0.001)/(MeanRandom+0.001))
-    #rapporto tra la media delle misure tra il modello reale e quello perturbato 
-    #e la media delle distanze tra il random e la sua perturbazione
-    bats <- as.vector(ratios)
-    names(bats) <- nn
-    res <- cbind(ID="ratios", t(bats))#la trasposta del rapporto
-    
-    output <- list( measureReal=measureReal,
-                    measureRandom=measureRandom,
-                    Mean=Mean,
-                    MeanRandom=MeanRandom,
-                    ratios=res
+    output <- list( Mean=Mean,
+                    MeanRandom=MeanRandom
                     )
       return(output)
 
@@ -861,8 +870,12 @@ plotRobin <- function(graph,
 #' @param v.weights This argument is settable only for "infomap" method.
 #' @param nb.trials This argument is settable only for "infomap" method.
 #' @param directed This argument is settable only for "edgeBetweenness" method.
-#'
-#' @return A list object
+#' @param verbose flag for verbose output (default as FALSE).
+#' 
+#' @return A list object with two matrices:
+#' - the matrix "Mean1" with the means of the procedure for the first method 
+#' - the matrix "Mean2" with the means of the procedure for the second method.
+#' 
 #' @import igraph
 #' @export
 #'
@@ -888,7 +901,8 @@ robinCompare <- function(graph,
                       spins=25, 
                       e.weights=NULL, 
                       v.weights=NULL, 
-                      nb.trials=10)
+                      nb.trials=10,
+                      verbose=FALSE)
 {   
     method1 <- match.arg(method1)
     method2 <- match.arg(method2)
@@ -921,6 +935,7 @@ robinCompare <- function(graph,
     graphRewire <- NULL
     count <- 1
     nRewire <- seq(0,60,5)
+    if(verbose) cat("Detected robin method ", type, " type\n")
     if(type == "independent") 
     {
         measureReal1 <- matrix(0, nrep^2, length(nRewire))
@@ -1020,7 +1035,7 @@ robinCompare <- function(graph,
                 Mean1[s, count] <- mean(vector1)
                 Mean2[s, count] <- mean(vector2)
             }
-            print(z)
+            if(verbose) cat("Perturbed ", z, " nodes\n")
         }
         
     }else{
@@ -1133,20 +1148,13 @@ robinCompare <- function(graph,
             Mean1 <-cbind(Mean1,Mean11)
             Mean2 <-cbind(Mean2,Mean22)
             z1 <- igraph::gsize(graph)
-            print(z1)
+            if(verbose) cat("Perturbed ", z, " nodes\n")
         }
     }
     colnames(Mean1) <- nRewire 
     colnames(Mean2) <- nRewire 
-    nn <- rep(nRewire, each=nrep) 
-    ratios1vs2 <- log2((Mean1+0.001)/(Mean2+0.001))
-    bats1vs2 <- as.vector(ratios1vs2)
-    names(bats1vs2) <- nn
-    res1vs2 <- cbind(ID="ratios", t(bats1vs2))
-    
     output <- list(Mean1=Mean1,
-                   Mean2=Mean2,
-                   ratios1vs2=res1vs2)
+                   Mean2=Mean2)
     return(output)
 }
 
@@ -1204,15 +1212,18 @@ createITPSplineResult <- function(graph, model1, model2,
     return(ITPresult)
 }
 
-######################GAUSSIN PROCESS#################
+######################GAUSSIAN PROCESS#################
 
 #' robinGPTest
 #'
 #' @description This function implements the GP testing procedure and calculates the 
 #' Bayes factor.
-#' @param ratio The ratios output of the robinRobust function (or the ratios1vs2 
-#' output of the comparison function). 
-#'
+#' @param model1 The Mean output of the robinRobust function (or the Mean1 
+#' output of the robinCompare function).
+#' @param model2 The MeanRandom output of the robinRobust function (or the 
+#' Mean2 output of the robinCompare function).
+#' @param verbose flag for verbose output (default as FALSE).
+#' 
 #' @return A numeric value, the Bayes factor
 #' @import gprege 
 #' @importFrom stats sd var
@@ -1224,14 +1235,26 @@ createITPSplineResult <- function(graph, model1, model2,
 #' graphRandom <- random(graph=graph)
 #' Proc <- robinRobust(graph=graph, graphRandom=graphRandom, 
 #' method="louvain", measure="vi",type="independent")
-#' robinGPTest(ratio=Proc$ratios)
-robinGPTest <- function(ratio)
-{
-    gpregeOptions <- list(indexRange=(1:2), explore=FALSE, 
-                         exhaustPlotRes=30, exhaustPlotLevels=10, 
-                         exhaustPlotMaxWidth=100, iters=100, 
+#' robinGPTest(model1=Proc$Mean,model2=Proc$MeanRandom)
+robinGPTest <- function(model1, model2, verbose=FALSE)
+{ 
+   ratios <- log2((model1+0.001)/(model2+0.001))
+   #rapporto tra la media delle misure tra il modello reale e quello perturbato 
+   #e la media delle distanze tra il random e la sua perturbazione
+   res <- as.vector(ratios)
+
+   nRewire <- seq(0,60,5)
+   nrep <- 10
+   names(res) <- rep(nRewire, each=nrep)
+
+   ratio <- t(res)#la trasposta del rapporto
+   gpregeOptions <- list(indexRange=(1:2), explore=FALSE,
+                         exhaustPlotRes=30, exhaustPlotLevels=10,
+                         exhaustPlotMaxWidth=100, iters=100,
                          labels=rep(FALSE,2), display=FALSE)
-    MA <- as.matrix(ratio[,c(2:dim(ratio)[2])])
+
+    if(verbose) cat("Computing Gaussian Process Testing.\n")
+    MA <- as.matrix(ratio[,c(1:dim(ratio)[2])])
     MA <- t(MA)
     vt <- unique(colnames(MA))
     ntimes <- length(vt)
@@ -1258,16 +1281,17 @@ robinGPTest <- function(ratio)
     # 1/1000,  0,	1
     #,1/ntimes,	0.8,0.2
     #), ncol=3, byrow=TRUE)
-    dvet <- data.matrix(as.numeric(colnames(ratio)[-1]))
-    dd <- t(data.matrix(as.numeric((ratio)[-1])))
+    dvet <- data.matrix(as.numeric(colnames(ratio)))
+    dd <- t(data.matrix(as.numeric(ratio)))
     rownames(dd) <- 'Measure'
     colnames(dd) <- dvet
     datadum <- rbind(dd, dd)
     gpregeOutput <- gprege::gprege(data=datadum, inputs=dvet,
                                   gpregeOptions=gpregeOptions)
     bf <- gpregeOutput$rankingScores[1]
-    
+
     return(Bayes_Factor=bf)
+  
  }
 
 
@@ -1280,14 +1304,15 @@ robinGPTest <- function(ratio)
 #'
 #' @param graph The output of prepGraph.
 #' @param model1 The Mean output of the robinRobust function (or the Mean1 
-#' output of the comparison function).
+#' output of the robinCompare function).
 #' @param model2 The MeanRandom output of the robinRobust function (or the 
-#' Mean2 output of the comparison function).
+#' Mean2 output of the robinCompare function).
 #' @param measure The stability measure "vi", "nmi", "split.join", 
 #' "adjusted.rand".
 #' @param legend The legend for the graph. The default is c("real data", 
 #' "null model").
-#'
+#' @param verbose flag for verbose output (default as FALSE).
+#' 
 #' @return Two plots: the fitted curves and the adjusted p-values. A vector of the adjusted p-values. 
 #' @import igraph ggplot2 fdatest graphics
 #' @export
@@ -1301,8 +1326,9 @@ robinGPTest <- function(ratio)
 #' robinFDATest(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom, measure="vi")
 robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
                         "split.join", "adjusted.rand"),
-                        legend=c("real data", "null model"))
+                        legend=c("real data", "null model"), verbose=FALSE)
 {
+    if(verbose) cat("Computing Interval testing procedure.\n")
     perc <- rep((seq(0,60,5)/100))
     ITPresult <- createITPSplineResult(graph, model1, model2, measure)
     plot2 <- graphics::plot(ITPresult, main='Measure', xrange=c(0,0.6), xlab='Percentage of perturbation', 
@@ -1320,11 +1346,13 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
 #' @description This function calculates the area under two curves with a spline approach. 
 #' @param graph The output of prepGraph.
 #' @param model1 The Mean output of the robinRobust function (or the Mean1 
-#' output of the comparison function).
+#' output of the robinCompare function).
 #' @param model2 The MeanRandom output of the robinRobust function (or the 
-#' Mean2 output of the comparison function).
+#' Mean2 output of the robinCompare function).
 #' @param measure The stability measure "vi", "nmi", "split.join", 
 #' "adjusted.rand".
+#' @param verbose flag for verbose output (default as FALSE).
+#' 
 #' @return A list
 #' @importFrom DescTools AUC
 #' @importFrom igraph vcount
@@ -1338,8 +1366,10 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
 #' measure="vi",type="independent")
 #' robinAUC(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom)
 robinAUC <- function(graph, model1, model2, 
-                         measure= c("vi", "nmi","split.join", "adjusted.rand"))
+                        measure= c("vi", "nmi","split.join", "adjusted.rand"),
+                        verbose=FALSE)
 {
+    if(verbose) cat("Computing area under the curve (AUC).\n")
     measure <- match.arg (measure)
     if(measure=="vi")
     {

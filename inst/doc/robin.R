@@ -36,8 +36,8 @@ legend=c("real data", "null model"), measure="vi")
 robinFDATest(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
              measure="vi")
 
-## -----------------------------------------------------------------------------
-robinGPTest(ratio=proc$ratios)
+## ----message=FALSE, warning=FALSE---------------------------------------------
+robinGPTest(model1=proc$Mean, model2=proc$MeanRandom)
 
 ## -----------------------------------------------------------------------------
 robinAUC(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
@@ -59,7 +59,10 @@ legend=c("fastGreedy", "louvain"), title="FastGreedy vs Louvain")
 
 ## -----------------------------------------------------------------------------
 robinFDATest(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi")
-robinGPTest(ratio=comp$ratios1vs2)
+
+
+## ----message=FALSE, warning=FALSE---------------------------------------------
+robinGPTest(model1=comp$Mean1, model2=comp$Mean2)
 
 ## -----------------------------------------------------------------------------
 robinAUC(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi")

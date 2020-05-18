@@ -9,23 +9,26 @@ robinFDATest(
   model1,
   model2,
   measure = c("vi", "nmi", "split.join", "adjusted.rand"),
-  legend = c("real data", "null model")
+  legend = c("real data", "null model"),
+  verbose = FALSE
 )
 }
 \arguments{
 \item{graph}{The output of prepGraph.}
 
 \item{model1}{The Mean output of the robinRobust function (or the Mean1 
-output of the comparison function).}
+output of the robinCompare function).}
 
 \item{model2}{The MeanRandom output of the robinRobust function (or the 
-Mean2 output of the comparison function).}
+Mean2 output of the robinCompare function).}
 
 \item{measure}{The stability measure "vi", "nmi", "split.join", 
 "adjusted.rand".}
 
 \item{legend}{The legend for the graph. The default is c("real data", 
 "null model").}
+
+\item{verbose}{flag for verbose output (default as FALSE).}
 }
 \value{
 Two plots: the fitted curves and the adjusted p-values. A vector of the adjusted p-values.
