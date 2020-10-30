@@ -29,12 +29,12 @@ proc <- robinRobust(graph=graph, graphRandom=graphRandom, measure="vi",
                   method="louvain", type="independent")
 
 ## -----------------------------------------------------------------------------
-plotRobin(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
-legend=c("real data", "null model"), measure="vi")
+plotRobin(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, measure="vi",
+legend=c("real data", "null model"))
 
 ## -----------------------------------------------------------------------------
 robinFDATest(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
-             measure="vi")
+             measure="vi",legend=c("real data", "null model"))
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
 robinGPTest(model1=proc$Mean, model2=proc$MeanRandom)

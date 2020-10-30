@@ -6,9 +6,9 @@
 #' prepares them for the analysis.
 #'
 #' @param file The input file containing the graph.
-#' @param file.format Character constant giving the file format. Right now
-#' as_edgelist, pajek, graphml, gml, ncol, lgl, dimacs, graphdb and igraph are
-#' supported
+#' @param file.format Character constant giving the file format. Edgelist, 
+#' pajek, graphml, gml, ncol, lgl, dimacs, graphdb and igraph are
+#' supported.
 #' @param numbers A logical value indicating if the names of the nodes are 
 #' values.This argument is settable for the edgelist format. 
 #' The default is FALSE.
@@ -26,13 +26,9 @@
 #' @examples 
 #' my_file <- system.file("example/football.gml", package="robin")
 #' graph <- prepGraph(file=my_file, file.format="gml")
-prepGraph <- function(file,
-                        file.format=c("edgelist", "pajek", "ncol", "lgl",
-                                      "graphml", "dimacs", "graphdb", "gml",
-                                      "dl","igraph"),
-                        numbers=FALSE,
-                        directed=FALSE,
-                        header=FALSE,
+prepGraph <- function(file, file.format=c("edgelist", "pajek", "ncol", "lgl",
+                        "graphml", "dimacs", "graphdb", "gml", "dl","igraph"),
+                        numbers=FALSE, directed=FALSE, header=FALSE, 
                         verbose=FALSE)
 { 
     file.format <- match.arg(file.format)
@@ -48,20 +44,19 @@ prepGraph <- function(file,
     }else if((file.format == "edgelist") & (numbers == TRUE))
     {
         edge <- utils::read.table(file,colClasses = "character", quote="\"",
-                           header=header)
+                                  header=header)
         edge <- as.matrix(edge)
         graph <- igraph::graph_from_edgelist(edge, directed=directed)
         graph <- igraph::simplify(graph)
     }else
     {
         net <- igraph::read_graph(file=file, format=file.format,
-                                  directed=directed
-                                  )
+                                  directed=directed)
         ind <- igraph::V(net)[degree(net) == 0] #isolate node
         graph <- igraph::delete.vertices(net, ind)
         graph <- igraph::simplify(graph)
     }
-   return(graph)
+    return(graph)
 }
 
 
@@ -86,7 +81,7 @@ random <- function(graph, verbose=FALSE)
     if(verbose) cat("Randomizing the graph edges.\n")
     z <- igraph::gsize(graph) ## number of edges
     graphRandom <- igraph::rewire(graph, 
-                            with=igraph::keeping_degseq(loops=FALSE, niter=z))
+                     with=igraph::keeping_degseq(loops=FALSE, niter=z))
     #rewiring for z all the edges
     return(graphRandom)
 }
@@ -151,15 +146,9 @@ methodCommunity <- function(graph,
                                     "fastGreedy", "louvain", "spinglass", 
                                     "leadingEigen", "labelProp", "infomap",
                                     "optimal", "other"),
-                            FUN=NULL,
-                            directed=FALSE,
-                            weights=NULL, 
-                            steps=4, 
-                            spins=25, 
-                            e.weights=NULL, 
-                            v.weights=NULL, 
-                            nb.trials=10, 
-                            verbose=FALSE)
+                            FUN=NULL, directed=FALSE, weights=NULL, steps=4, 
+                            spins=25, e.weights=NULL, v.weights=NULL, 
+                            nb.trials=10, verbose=FALSE)
 {   
     
     method <- match.arg(method)
@@ -175,33 +164,21 @@ methodCommunity <- function(graph,
         steps  <- -1
     }
     communities <- switch(method, 
-            optimal=igraph::cluster_optimal(graph, 
-                                            weights = weights),
-            louvain=igraph::cluster_louvain(graph=graph, 
-                                    weights=weights), 
-           
-            walktrap=igraph::cluster_walktrap(graph=graph, 
-                                    weights=weights, 
+            optimal=igraph::cluster_optimal(graph, weights = weights),
+            louvain=igraph::cluster_louvain(graph=graph, weights=weights),
+            walktrap=igraph::cluster_walktrap(graph=graph, weights=weights, 
                                     steps=steps), 
-           
-            spinglass=igraph::cluster_spinglass(graph=graph, 
-                                        weights=weights, 
+            spinglass=igraph::cluster_spinglass(graph=graph, weights=weights, 
                                         spins=spins), 
-           
             leadingEigen=igraph::cluster_leading_eigen(graph=graph, 
-                                            steps=steps, 
-                                            weights=weights,
+                                            steps=steps, weights=weights,
                                             options=list(maxiter=1000000)), 
-           
             edgeBetweenness=igraph::cluster_edge_betweenness(graph=graph, 
                                                     weights=weights,
                                                     directed=directed), 
-           
             fastGreedy=igraph::cluster_fast_greedy(graph=graph, 
                                                    weights=weights), 
-           
             labelProp=igraph::cluster_label_prop(graph=graph, weights=weights), 
-           
             infomap=igraph::cluster_infomap(graph=graph, e.weights=e.weights, 
                                 v.weights=v.weights, nb.trials=nb.trials),
             other=FUN(graph, weights)
@@ -219,7 +196,10 @@ methodCommunity <- function(graph,
 #' @param method The clustering method, one of "walktrap", "edgeBetweenness", 
 #' "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp", "infomap",
 #' "optimal".
-#' @param FUN see \code{\link{methodCommunity}}.
+#' @param FUN in case the @method parameter is "other" there is the possibility 
+#' to use a personal function passing its name through this parameter.
+#' The personal parameter has to take as input the @graph and the @weights 
+#' (that can be NULL), and has to return a community object.
 #' @param weights  Optional positive weight vector. If the graph has a weight 
 #' edge attribute, then this is used by default. Supply NA here if the graph 
 #' has a weight edge attribute, but you want to ignore it. Larger edge weights
@@ -266,14 +246,9 @@ membershipCommunities<- function(graph,
                                         "fastGreedy", "louvain", "spinglass", 
                                         "leadingEigen", "labelProp", "infomap",
                                         "optimal", "other"),
-                                 FUN=NULL,
-                                 directed=FALSE,
-                                 weights=NULL, 
-                                 steps=4, 
-                                 spins=25, 
-                                 e.weights=NULL, 
-                                 v.weights=NULL, 
-                                 nb.trials=10)
+                                 FUN=NULL, directed=FALSE, weights=NULL, 
+                                 steps=4, spins=25, e.weights=NULL, 
+                                 v.weights=NULL, nb.trials=10)
 {
     method <- match.arg(method)
     members <- membership(methodCommunity(graph=graph, method=method,
@@ -308,8 +283,8 @@ plotGraph <- function(graph)
 {
     graph_d3 <- networkD3::igraph_to_networkD3(g=graph)
     plot <- networkD3::simpleNetwork(graph_d3$links, opacity=0.8, zoom=TRUE,
-                                     linkColour = "B1AEAE", nodeColour = "#2E66AC",
-                                     fontSize=12)
+                                linkColour = "B1AEAE", nodeColour = "#2E66AC",
+                                fontSize=12)
     return(plot)
 }   
 
@@ -341,15 +316,10 @@ plotComm <- function(graph, members)
     stopifnot(methods::is(members, "membership"))
     graph_d3 <- networkD3::igraph_to_networkD3(g=graph, group=members)
     # Create network plot
-    plot <- networkD3::forceNetwork(Links=graph_d3$links, 
-                                     Nodes=graph_d3$nodes,
-                                     Source='source', 
-                                     Target='target', 
-                                     NodeID='name', 
-                                     Group='group',
-                                     opacity=0.8,
-                                     fontSize=12,
-                                     legend=TRUE)
+    plot <- networkD3::forceNetwork(Links=graph_d3$links, Nodes=graph_d3$nodes,
+                                    Source='source', Target='target', 
+                                    NodeID='name', Group='group', opacity=0.8,
+                                    fontSize=12, legend=TRUE)
     return(plot)
 }
 
@@ -385,26 +355,17 @@ rewireCompl <- function(data, number, community,
                                  "optimal", "other"),
                         FUN=NULL,
                         measure= c("vi", "nmi","split.join", "adjusted.rand"),
-                        directed=FALSE,
-                        weights=NULL, 
-                        steps=4, 
-                        spins=25, 
-                        e.weights=NULL, 
-                        v.weights=NULL, 
-                        nb.trials=10)
+                        directed=FALSE, weights=NULL, steps=4, spins=25, 
+                        e.weights=NULL, v.weights=NULL, nb.trials=10)
 {
     method <- match.arg(method)
     measure <- match.arg (measure)
     graphRewire <- igraph::rewire(data,
                                   with=keeping_degseq(loops=FALSE,niter=number))
     comR <- membershipCommunities(graph=graphRewire, method=method, FUN=FUN,
-                            directed=directed,
-                            weights=weights,
-                            steps=steps, 
-                            spins=spins, 
-                            e.weights=e.weights, 
-                            v.weights=v.weights, 
-                            nb.trials=nb.trials)
+                            directed=directed, weights=weights, steps=steps, 
+                            spins=spins, e.weights=e.weights, 
+                            v.weights=v.weights, nb.trials=nb.trials)
     Measure <- igraph::compare(community, comR, method=measure)
     output <- list(Measure=Measure, graphRewire=graphRewire)
     
@@ -420,9 +381,8 @@ rewireCompl <- function(data, number, community,
 
 rewireOnl <- function(data, number)
 {
-    graphRewire <- igraph::rewire(data,
-                                    with=keeping_degseq(loops=FALSE,
-                                                        niter=number))
+    graphRewire <- igraph::rewire(data, with=keeping_degseq(loops=FALSE,
+                                              niter=number))
     return(graphRewire)
 }
 
@@ -438,7 +398,10 @@ rewireOnl <- function(data, number)
 #' @param method The clustering method, one of "walktrap", "edgeBetweenness", 
 #' "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp", "infomap",
 #' "optimal".
-#' @param FUN see \code{\link{methodCommunity}}.
+#' @param FUN in case the @method parameter is "other" there is the possibility 
+#' to use a personal function passing its name through this parameter.
+#' The personal parameter has to take as input the @graph and the @weights 
+#' (that can be NULL), and has to return a community object.
 #' @param measure The stability measure, one of "vi", "nmi", "split.join", 
 #' "adjusted.rand".
 #' @param type The type of robin costruction, dependent or independent data
@@ -470,17 +433,10 @@ robinRobust <- function(graph, graphRandom,
                          "fastGreedy", "louvain", "spinglass", 
                          "leadingEigen", "labelProp", "infomap",
                          "optimal", "other"),
-                FUN=NULL,
-                measure= c("vi", "nmi","split.join", "adjusted.rand"),
-                type=c("independent","dependent"),
-                directed=FALSE,
-                weights=NULL, 
-                steps=4, 
-                spins=25, 
-                e.weights=NULL, 
-                v.weights=NULL, 
-                nb.trials=10,
-                verbose=FALSE) 
+                FUN=NULL, measure= c("vi", "nmi","split.join", "adjusted.rand"),
+                type=c("independent","dependent"), directed=FALSE, weights=NULL, 
+                steps=4, spins=25, e.weights=NULL, v.weights=NULL, 
+                nb.trials=10, verbose=FALSE) 
 {   
     measure <- match.arg(measure)
     type<- match.arg(type)
@@ -505,6 +461,8 @@ robinRobust <- function(graph, graphRandom,
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
                                         nb.trials=nb.trials) # random network
+    #stopifnot(length(table(comRandom))>1)
+    #if(length(table(comRandom))==1) {stop("Not random graph")}
     de <- igraph::gsize(graph)
     Measure <- NULL
     vector <- NULL
@@ -774,7 +732,7 @@ robinRobust <- function(graph, graphRandom,
 #' plotRobin
 #'
 #' @description This function plots two curves: the measure of the null model and the measure
-#' of the real graph.
+#' of the real graph or the measure of the two community detection algorithms.
 #' @param graph The output of prepGraph
 #' @param model1 The Mean output of the robinRobust function or the Mean1 
 #' output of robinCompare.
@@ -783,7 +741,9 @@ robinRobust <- function(graph, graphRandom,
 #' @param measure The stability measure: one of "vi", "nmi", "split.join", 
 #' "adjusted.rand".
 #' @param legend The legend for the graph. The default is c("model1", 
-#' "model2").
+#' "model2"). If using robinRobust is recommended c("real data", "null model"), 
+#' if using robinCompare, enter the names of the community detection 
+#' algorithms.
 #' @param title The title for the graph. The default is "Robin plot".
 #'
 #' @return A ggplot object.
@@ -799,28 +759,24 @@ robinRobust <- function(graph, graphRandom,
 #' plotRobin(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom,
 #' measure="vi", legend=c("real data", "null model"))
 #' 
-plotRobin <- function(graph,
-                      model1,
-                      model2,
+plotRobin <- function(graph, model1, model2,
                       measure= c("vi", "nmi","split.join", "adjusted.rand"),
                       legend=c("model1", "model2"),
                       title="Robin plot")
 {   
     measure <- match.arg (measure)
     if(measure=="vi")
-   {
-    N <- igraph::vcount(graph)
-    mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))/log2(N)),legend[1])
-    mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))/log2(N)),legend[2]) 
-    }else if(measure=="split.join")
     {
-    N <- igraph::vcount(graph)
-    mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))/(2*N)),legend[1])
-    mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))/(2*N)),legend[2])     
-    }else
-    {
-    mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))), legend[1])
-    mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))), legend[2])
+      N <- igraph::vcount(graph)
+      mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))/log2(N)),legend[1])
+      mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))/log2(N)),legend[2]) 
+    } else if(measure=="split.join") {
+      N <- igraph::vcount(graph)
+      mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))/(2*N)),legend[1])
+      mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))/(2*N)),legend[2])     
+    } else {
+      mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))), legend[1])
+      mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))), legend[2])
     }
     
     percPert <- rep((seq(0,60,5)/100), 2)
@@ -830,14 +786,11 @@ plotRobin <- function(graph,
     dataFrame <- data.frame(percPert, mvi)
     plot <- ggplot2::ggplot(dataFrame, aes(x=percPert, 
                                             y=as.numeric(as.character(mvi)), 
-                                            colour=model,
-                                            group=factor(model)))+ 
+                                            colour=model, group=factor(model)))+ 
         geom_line()+
         geom_point()+ 
         xlab("Percentage of perturbation") +
         ylab("Measure") +
-        #scale_y_continuous(limits=c(0,0.6))+ #only for VI
-        #scale_color_manual(values=c("#00AFBB","indianred2"))+
         ggtitle(title)
       
     return(plot)
@@ -891,18 +844,12 @@ robinCompare <- function(graph,
                       method2=c("walktrap", "edgeBetweenness", "fastGreedy",
                                 "leadingEigen","louvain","spinglass",
                                 "labelProp","infomap","optimal", "other"),
-                      FUN1=NULL,
-                      FUN2=NULL,
+                      FUN1=NULL, FUN2=NULL,
                       measure= c("vi", "nmi","split.join", "adjusted.rand"),
                       type=c("independent", "dependent"),
-                      directed=FALSE,
-                      weights=NULL, 
-                      steps=4, 
-                      spins=25, 
-                      e.weights=NULL, 
-                      v.weights=NULL, 
-                      nb.trials=10,
-                      verbose=FALSE)
+                      directed=FALSE, weights=NULL, steps=4, 
+                      spins=25, e.weights=NULL, v.weights=NULL, 
+                      nb.trials=10, verbose=FALSE)
 {   
     method1 <- match.arg(method1)
     method2 <- match.arg(method2)
@@ -1209,6 +1156,7 @@ createITPSplineResult <- function(graph, model1, model2,
     ITPresult <- fdatest::ITP2bspline(modeled1, modeled2, mu=muParam, 
                                     order=orderParam, nknots=nKnots, 
                                     B=BParam, paired=isPaired)
+   
     return(ITPresult)
 }
 
@@ -1265,22 +1213,15 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
         stdv[i] <- stats::sd(MA[1,ind])
         varv[i] <- stats::var(MA[1,ind])
     }
-    #sigmaest=mean(stdv)Order of the B-spline basis expansion.
     GlobalVar <- var(MA[1,])
     SigNoise <- mean(varv)/GlobalVar
     if (SigNoise>1) SigNoise <- 1
-    #SigNoise=1-var(MA[2,])
     sigmaest <- 1-SigNoise
-    #mod='08'
-    #ntimes=50
+    ## [inverse-lengthscale percent-signal-variance percent-noise-variance]
     gpregeOptions$inithypers <- matrix( c(
         1/1000,	0,	1
-        ,1/ntimes,	sigmaest, SigNoise
+        ,1/ntimes,	sigmaest, SigNoise 
     ), ncol=3, byrow=TRUE)
-    #gpregeOptions$inithypers <- matrix( c(
-    # 1/1000,  0,	1
-    #,1/ntimes,	0.8,0.2
-    #), ncol=3, byrow=TRUE)
     dvet <- data.matrix(as.numeric(colnames(ratio)))
     dd <- t(data.matrix(as.numeric(ratio)))
     rownames(dd) <- 'Measure'
@@ -1309,12 +1250,14 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
 #' Mean2 output of the robinCompare function).
 #' @param measure The stability measure "vi", "nmi", "split.join", 
 #' "adjusted.rand".
-#' @param legend The legend for the graph. The default is c("real data", 
-#' "null model").
+#' @param legend The legend for the graph. The default is c("model1", 
+#' "model2"). If using robinRobust is recommended c("real data", "null model"), 
+#' if using robinCompare, enter the names of the community detection 
+#' algorithms.
 #' @param verbose flag for verbose output (default as FALSE).
 #' 
 #' @return Two plots: the fitted curves and the adjusted p-values. A vector of the adjusted p-values. 
-#' @import igraph ggplot2 fdatest graphics
+#' @import igraph ggplot2 fdatest graphics qpdf
 #' @export
 #'
 #' @examples 
@@ -1323,21 +1266,68 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
 #' graphRandom <- random(graph=graph)
 #' Proc <- robinRobust(graph=graph, graphRandom=graphRandom, method="louvain",
 #' measure="vi",type="independent")
-#' robinFDATest(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom, measure="vi")
+#' robinFDATest(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom, 
+#' measure="vi",legend=c("real data", "null model"))
 robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
                         "split.join", "adjusted.rand"),
-                        legend=c("real data", "null model"), verbose=FALSE)
+                        legend=c("model1", "model2"), verbose=FALSE)
 {
     if(verbose) cat("Computing Interval testing procedure.\n")
-    perc <- rep((seq(0,60,5)/100))
-    ITPresult <- createITPSplineResult(graph, model1, model2, measure)
-    plot2 <- graphics::plot(ITPresult, main='Measure', xrange=c(0,0.6), xlab='Percentage of perturbation', 
-                ylab="Measure")
-    graphics::lines(perc, rep(0.05, 13), type="l", col="red")
+    object <- createITPSplineResult(graph, model1, model2, measure)
     
-    adj.pvalue<-ITPresult$corrected.pval
-    print(plot2)
-    return(adj.pvalue)
+    
+    #Functional Data plot
+    J <- dim(object$data.eval)[2]
+    xmin <- 0
+    xmax <- 0.6
+    Abscissa <- seq(xmin,xmax,len=J)
+    
+    model1 <- cbind(as.numeric(as.vector(t(object$data.eval[1:10,]))))
+    model2 <- cbind(as.numeric(as.vector(t(object$data.eval[11:20,]))))
+    
+    measures <- rbind(model1, model2)
+    model <- c(rep(legend[1],each=10000),rep(legend[2],each=10000))
+    percPert <- as.numeric(rep(Abscissa, times = 10))
+    s <- c(rep(1:10,each=1000),rep(11:20,each=1000))
+    dataFrame <- data.frame(measures,model,s,percPert)
+    plot1 <- ggplot2::ggplot(dataFrame, ggplot2::aes(x=as.numeric(percPert),
+                 y=as.numeric(measures), color= model, group=s)) +
+             ggplot2::geom_line() +
+             ggplot2::xlab("Percentage of perturbation") +
+             ggplot2::ylab("Measure")+
+             ggplot2::ggtitle("Functional Data Analysis")+
+             ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6))  
+    
+     
+  
+     #P value plot
+     p <- length(object$pval)
+     xmin <- 0
+     xmax <- 0.6
+     abscissa.pval <- rep(seq(xmin,xmax,len=p),time=2)
+     pvalue <- c(object$pval,object$corrected.pval)
+     type <- c(rep("pvalue",p),rep("pvalue.adj",p))
+     PdataFrame<-data.frame(cbind(abscissa.pval,pvalue,type))
+     plot2 <- ggplot2::ggplot(PdataFrame, ggplot2::aes(x=as.numeric(abscissa.pval),
+                                                    y=as.numeric(pvalue), color= type)) +
+              ggplot2::geom_point() +
+              ggplot2::ylim(0,1) +
+              ggplot2::xlab("Percentage of perturbation") +
+              ggplot2::ylab("p_value")+
+              ggplot2::ggtitle("P-values")+
+              ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6))+
+              ggplot2::geom_hline(yintercept = 0.05,color = "red")
+     
+    
+    plot <- gridExtra::grid.arrange(plot1,plot2, ncol=2)
+    print(plot)
+   
+    adj.pvalue<-object$corrected.pval
+    pvalue<-object$pval
+    output<-list(adj.pvalue=adj.pvalue,
+                 pvalues=pvalue)
+    
+    return(output)
 }  
 
 ########### AREA UNDER THE CURVE    ##############
