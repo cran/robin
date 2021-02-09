@@ -23,7 +23,15 @@
 #' @importFrom utils read.table
 #' @export
 #'
-#' @examples 
+#' @examples
+#' #install.packages("robin")
+#' 
+#' #If there are problems with the installation try:
+#' # if (!requireNamespace("BiocManager", quietly = TRUE))
+#' #     install.packages("BiocManager")
+#' # BiocManager::install("gprege")
+#' # install.packages("robin")   
+#'                      
 #' my_file <- system.file("example/football.gml", package="robin")
 #' graph <- prepGraph(file=my_file, file.format="gml")
 prepGraph <- function(file, file.format=c("edgelist", "pajek", "ncol", "lgl",
@@ -581,7 +589,7 @@ robinRobust <- function(graph, graphRandom,
                 MeanRandom[s, count] <- mean(vectRandom)
                 Mean[s, count] <- mean(vector)
             }
-            if(verbose) cat("Perturbed ", z, " nodes\n")
+            if(verbose) cat("Perturbed ", z, " edges\n")
         }
   #DEPENDENT 
     }else{
@@ -709,7 +717,7 @@ robinRobust <- function(graph, graphRandom,
             MeanRandom <- cbind(MeanRandom,MeanRandom1)
             z1 <- igraph::gsize(graph)
             #print(z1)
-            if(verbose) cat("Perturbed ", z, " nodes\n")
+            if(verbose) cat("Perturbed ", z, " edges\n")
             }
     }
     colnames(measureRandom) <- nRewire
@@ -768,30 +776,30 @@ plotRobin <- function(graph, model1, model2,
     if(measure=="vi")
     {
       N <- igraph::vcount(graph)
-      mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))/log2(N)),legend[1])
-      mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))/log2(N)),legend[2]) 
+      mvimodel1 <- as.vector((apply(model1, 2, mean))/log2(N))
+      mvimodel2 <- as.vector((apply(model2, 2, mean))/log2(N))
     } else if(measure=="split.join") {
       N <- igraph::vcount(graph)
-      mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))/(2*N)),legend[1])
-      mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))/(2*N)),legend[2])     
+      mvimodel1 <- as.vector((apply(model1, 2, mean))/(2*N))
+      mvimodel2 <- as.vector((apply(model2, 2, mean))/(2*N))     
     } else {
-      mvimodel1 <- cbind(as.vector((apply(model1, 2, mean))), legend[1])
-      mvimodel2 <- cbind(as.vector((apply(model2, 2, mean))), legend[2])
+      mvimodel1 <- as.vector((apply(model1, 2, mean)))
+      mvimodel2 <- as.vector((apply(model2, 2, mean)))
     }
     
     percPert <- rep((seq(0,60,5)/100), 2)
-    model <- mvimodel2
-    mvi <- rbind(mvimodel1, model)
-    colnames(mvi) <- c("mvi", "model")
-    dataFrame <- data.frame(percPert, mvi)
-    plot <- ggplot2::ggplot(dataFrame, aes(x=percPert, 
-                                            y=as.numeric(as.character(mvi)), 
-                                            colour=model, group=factor(model)))+ 
-        geom_line()+
-        geom_point()+ 
-        xlab("Percentage of perturbation") +
-        ylab("Measure") +
-        ggtitle(title)
+    mvi <- c(mvimodel1, mvimodel2)
+    model <-c(rep(legend[1],13),rep(legend[2],13))
+    dataFrame <- data.frame(percPert, mvi, model)
+    plot <- ggplot2::ggplot(dataFrame, aes(x = percPert, y = as.numeric(as.character(mvi)), 
+                                           colour = model, group = factor(model))) + 
+                     geom_line() + 
+                     geom_point() + 
+                     xlab("Percentage of perturbation") + 
+                     ylab("Measure") +
+                     ggplot2::ylim(0,1)+
+                     ggtitle(title)
+    
       
     return(plot)
 }
@@ -883,6 +891,7 @@ robinCompare <- function(graph,
     count <- 1
     nRewire <- seq(0,60,5)
     if(verbose) cat("Detected robin method ", type, " type\n")
+    #independent
     if(type == "independent") 
     {
         measureReal1 <- matrix(0, nrep^2, length(nRewire))
@@ -982,9 +991,9 @@ robinCompare <- function(graph,
                 Mean1[s, count] <- mean(vector1)
                 Mean2[s, count] <- mean(vector2)
             }
-            if(verbose) cat("Perturbed ", z, " nodes\n")
+            if(verbose) cat("Perturbed ", z, " edges\n")
         }
-        
+    #dependent    
     }else{
         z <- round((5*de)/100, 0)
         measureReal1 <- rep(0, nrep^2)
@@ -1095,7 +1104,7 @@ robinCompare <- function(graph,
             Mean1 <-cbind(Mean1,Mean11)
             Mean2 <-cbind(Mean2,Mean22)
             z1 <- igraph::gsize(graph)
-            if(verbose) cat("Perturbed ", z, " nodes\n")
+            if(verbose) cat("Perturbed ", z, " edges\n")
         }
     }
     colnames(Mean1) <- nRewire 
@@ -1293,10 +1302,13 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
     plot1 <- ggplot2::ggplot(dataFrame, ggplot2::aes(x=as.numeric(percPert),
                  y=as.numeric(measures), color= model, group=s)) +
              ggplot2::geom_line() +
+             ggplot2::ylim(0,1)+
              ggplot2::xlab("Percentage of perturbation") +
              ggplot2::ylab("Measure")+
              ggplot2::ggtitle("Functional Data Analysis")+
-             ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6))  
+             ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6))
+             
+      
     
      
   
@@ -1315,7 +1327,7 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
               ggplot2::xlab("Percentage of perturbation") +
               ggplot2::ylab("p_value")+
               ggplot2::ggtitle("P-values")+
-              ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4,0.5, 0.6))+
+              ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6))+
               ggplot2::geom_hline(yintercept = 0.05,color = "red")
      
     

@@ -1,3 +1,13 @@
+## -----------------------------------------------------------------------------
+#install.packages("robin")
+
+## -----------------------------------------------------------------------------
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("gprege")
+# 
+# install.packages("robin")
+
 ## ----message=FALSE, warning=FALSE, paged.print=TRUE---------------------------
 library("robin")
 

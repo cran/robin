@@ -1,13 +1,13 @@
-9166afdb6f89c70b0f9a5e2e1b10e631 *DESCRIPTION
+2c4e553213fd2d408638a76dcef0cf9c *DESCRIPTION
 a562475b30176b5c2ec55de5d215d4e1 *LICENSE
 e04b4263a66e7d3ba1714f13c8f06ba7 *NAMESPACE
-35e53567b1182057aa23219c91435452 *R/ROBIN.R
-c7d049f5d8cce6858f4eadd3bcf9b721 *README.md
+0cfbb1d3f0c33019ba7f364f8f155c3d *R/ROBIN.R
+dda62ce9b10ce33635c3e441620918a1 *README.md
 f2980786f2d835a75a93b6665e07bed7 *build/vignette.rds
-dce3327b600be3b3ed8b77ca193552a8 *inst/NEWS
-a4ccbe3587f60aefc45685257139eb9f *inst/doc/robin.R
-31bcacf686e567664b60fc24d7fa6a71 *inst/doc/robin.Rmd
-574328d1cd85d9804188c70222f48ff3 *inst/doc/robin.html
+6039124099fc033d6967452a3aa964ee *inst/NEWS
+3f99e1a33c149c5302e1a4334cf3ded7 *inst/doc/robin.R
+92dd528fc910d272d2eff413abf140f4 *inst/doc/robin.Rmd
+9dc7248b7514583716377974f5b83699 *inst/doc/robin.html
 4b6607d42e788109802a3f759684b218 *inst/example/football.gml
 332ce4943b375f89c235267ccafca27f *man/createITPSplineResult.Rd
 d1e77c40719655f935a186dd0174abe0 *man/membershipCommunities.Rd
@@ -15,7 +15,7 @@ fb9cc3bdc0bcf84776558332826f29d3 *man/methodCommunity.Rd
 b07acdf84b6cbda72bd1d7f6a80ae1e4 *man/plotComm.Rd
 3fe7ece23f35aab7204592523f24e82f *man/plotGraph.Rd
 03df7fd57deedb140f6dac958c449e17 *man/plotRobin.Rd
-f933eac3a4b33d96596a0a1a14b15af2 *man/prepGraph.Rd
+aa388dfdcb788bb1e0ab8ff1927bf620 *man/prepGraph.Rd
 e1f71fce4b182c409775bd5004e8154f *man/random.Rd
 97c1a3c36edb13a792d2e5d3d0b77c2c *man/rewireCompl.Rd
 b135982b05159b6484a4b39c986e7682 *man/rewireOnl.Rd
@@ -24,4 +24,4 @@ a1a8c1baa7707e89278a5b639a05cbe2 *man/robinCompare.Rd
 b7713bdb375565a2256a9c09abb2eaf7 *man/robinFDATest.Rd
 beeead10aa6a38174d9b55dd924e816c *man/robinGPTest.Rd
 764e723eedb61481f1b68ad87dec7504 *man/robinRobust.Rd
-31bcacf686e567664b60fc24d7fa6a71 *vignettes/robin.Rmd
+92dd528fc910d272d2eff413abf140f4 *vignettes/robin.Rmd
