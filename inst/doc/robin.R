@@ -18,10 +18,6 @@ graph <- prepGraph(file=my_network, file.format="gml")
 graph
 
 ## -----------------------------------------------------------------------------
-graphRandom <- random(graph=graph)
-graphRandom
-
-## -----------------------------------------------------------------------------
 plotGraph(graph)
 
 ## -----------------------------------------------------------------------------
@@ -35,23 +31,26 @@ members <- membershipCommunities(graph=graph, method="fastGreedy")
 plotComm(graph=graph, members=members)
 
 ## -----------------------------------------------------------------------------
+graphRandom <- random(graph=graph)
+graphRandom
+
+## -----------------------------------------------------------------------------
 proc <- robinRobust(graph=graph, graphRandom=graphRandom, measure="vi", 
                   method="louvain", type="independent")
 
 ## -----------------------------------------------------------------------------
-plotRobin(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, measure="vi",
+plotRobin(graph=graph, model1=proc$Mean, model2=proc$MeanRandom,
 legend=c("real data", "null model"))
 
-## -----------------------------------------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 robinFDATest(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
-             measure="vi",legend=c("real data", "null model"))
+            legend=c("real graph", "random graph"))
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
 robinGPTest(model1=proc$Mean, model2=proc$MeanRandom)
 
 ## -----------------------------------------------------------------------------
-robinAUC(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
-             measure="vi")
+robinAUC(graph=graph, model1=proc$Mean, model2=proc$MeanRandom)
 
 ## -----------------------------------------------------------------------------
 membersFast <- membershipCommunities(graph=graph, method="fastGreedy")
@@ -64,16 +63,16 @@ comp <- robinCompare(graph=graph, method1="fastGreedy",
                 method2="louvain", measure="vi", type="independent")
 
 ## -----------------------------------------------------------------------------
-plotRobin(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi", 
+plotRobin(graph=graph, model1=comp$Mean1, model2=comp$Mean2, 
 legend=c("fastGreedy", "louvain"), title="FastGreedy vs Louvain")
 
-## -----------------------------------------------------------------------------
-robinFDATest(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi")
+## ----message=FALSE, warning=FALSE---------------------------------------------
+robinFDATest(graph=graph, model1=comp$Mean1, model2=comp$Mean2)
 
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
 robinGPTest(model1=comp$Mean1, model2=comp$Mean2)
 
 ## -----------------------------------------------------------------------------
-robinAUC(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi")
+robinAUC(graph=graph, model1=comp$Mean1, model2=comp$Mean2)
 

@@ -21,7 +21,7 @@ robinCompare(
   e.weights = NULL,
   v.weights = NULL,
   nb.trials = 10,
-  verbose = FALSE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -42,9 +42,10 @@ see \code{\link{methodCommunity}}.}
 see \code{\link{methodCommunity}}.}
 
 \item{measure}{The stability measure, one of "vi", "nmi", "split.join", 
-"adjusted.rand".}
+"adjusted.rand" all normalized and used as distances.
+"nmi" refers to 1- nmi and "adjusted.ran" refers to 1-adjusted.rand.}
 
-\item{type}{The type of robin costruction, dependent or independent.}
+\item{type}{The type of robin construction, dependent or independent.}
 
 \item{directed}{This argument is settable only for "edgeBetweenness" method.}
 
@@ -61,12 +62,12 @@ method.}
 
 \item{nb.trials}{This argument is settable only for "infomap" method.}
 
-\item{verbose}{flag for verbose output (default as FALSE).}
+\item{verbose}{flag for verbose output (default as TRUE).}
 }
 \value{
 A list object with two matrices:
 - the matrix "Mean1" with the means of the procedure for the first method 
-- the matrix "Mean2" with the means of the procedure for the second method.
+- the matrix "Mean2" with the means of the procedure for the second method
 }
 \description{
 This function compares the robustness of two community 

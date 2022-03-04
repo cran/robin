@@ -43,7 +43,11 @@ prepGraph <- function(file, file.format=c("edgelist", "pajek", "ncol", "lgl",
     if(verbose) cat("Detected file format: ", file.format, "\n")
     if (file.format =="igraph")
     { 
-        graph <- igraph::simplify(file) 
+        net <- file
+        ind <- igraph::V(net)[degree(net) == 0] #isolate node
+        graph <- igraph::delete.vertices(net, ind)
+        graph <- igraph::simplify(graph)
+        
     }else if (file.format == "gml") {
         net <- igraph::read_graph(file=file, format=file.format)
         ind <- igraph::V(net)[degree(net) == 0] #isolate node
@@ -54,7 +58,9 @@ prepGraph <- function(file, file.format=c("edgelist", "pajek", "ncol", "lgl",
         edge <- utils::read.table(file,colClasses = "character", quote="\"",
                                   header=header)
         edge <- as.matrix(edge)
-        graph <- igraph::graph_from_edgelist(edge, directed=directed)
+        net <- igraph::graph_from_edgelist(edge, directed=directed)
+        ind <- igraph::V(net)[degree(net) == 0] #isolate node
+        graph <- igraph::delete.vertices(net, ind)
         graph <- igraph::simplify(graph)
     }else
     {
@@ -411,8 +417,10 @@ rewireOnl <- function(data, number)
 #' The personal parameter has to take as input the @graph and the @weights 
 #' (that can be NULL), and has to return a community object.
 #' @param measure The stability measure, one of "vi", "nmi", "split.join", 
-#' "adjusted.rand".
-#' @param type The type of robin costruction, dependent or independent data
+#' "adjusted.rand" all normalized and used as distances.
+#' "nmi" refers to 1- nmi and "adjusted.ran" refers to 1-adjusted.rand.
+#' @param type The type of robin construction, dependent or independent 
+#' procedure.
 #' @param weights this argument is not settable for "infomap" method.
 #' @param steps this argument is settable only for "leadingEigen"and"walktrap" 
 #' method.
@@ -421,7 +429,7 @@ rewireOnl <- function(data, number)
 #' @param v.weights This argument is settable only for "infomap" method.
 #' @param nb.trials This argument is settable only for "infomap" method.
 #' @param directed This argument is settable only for "edgeBetweenness" method.
-#' @param verbose flag for verbose output (default as FALSE).
+#' @param verbose flag for verbose output (default as TRUE).
 #' 
 #' @return A list object with two matrices:
 #' - the matrix "Mean" with the means of the procedure for the graph
@@ -444,7 +452,7 @@ robinRobust <- function(graph, graphRandom,
                 FUN=NULL, measure= c("vi", "nmi","split.join", "adjusted.rand"),
                 type=c("independent","dependent"), directed=FALSE, weights=NULL, 
                 steps=4, spins=25, e.weights=NULL, v.weights=NULL, 
-                nb.trials=10, verbose=FALSE) 
+                nb.trials=10, verbose=TRUE) 
 {   
     measure <- match.arg(measure)
     type<- match.arg(type)
@@ -472,6 +480,7 @@ robinRobust <- function(graph, graphRandom,
     #stopifnot(length(table(comRandom))>1)
     #if(length(table(comRandom))==1) {stop("Not random graph")}
     de <- igraph::gsize(graph)
+    N <- igraph::vcount(graph)
     Measure <- NULL
     vector <- NULL
     vectRandom <- NULL
@@ -513,11 +522,12 @@ robinRobust <- function(graph, graphRandom,
                                     e.weights=e.weights, 
                                     v.weights=v.weights, 
                                     nb.trials=nb.trials)
-                if((measure=="vi")|(measure=="split.join"))
+                if (measure=="vi")
                 {
-                    vector[k] <- Real$Measure
-                } 
-                else {
+                    vector[k] <- (Real$Measure)/log2(N)
+                } else if(measure=="split.join"){
+                     vector[k] <- (Real$Measure)/(2*N)
+                } else {
                     vector[k] <- 1-(Real$Measure)
                 }
                 measureReal[count2, count] <- vector[k]
@@ -536,9 +546,12 @@ robinRobust <- function(graph, graphRandom,
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
                                         nb.trials=nb.trials)
-                if((measure=="vi")|(measure=="split.join"))
+                if (measure=="vi")
                 {
-                    vectRandom[k] <- Random$Measure
+                    vectRandom[k] <- (Random$Measure)/log2(N)
+                } else if(measure=="split.join")
+                {
+                    vectRandom[k] <- (Random$Measure)/(2*N)
                 } else {
                     vectRandom[k] <- 1-(Random$Measure)
                 }
@@ -559,9 +572,12 @@ robinRobust <- function(graph, graphRandom,
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
                                         nb.trials=nb.trials)
-                    if((measure=="vi")|(measure=="split.join"))
+                    if (measure=="vi")
                     {
-                        vector[k] <- Real$Measure
+                        vector[k] <- (Real$Measure)/log2(N)
+                    } else if(measure=="split.join")
+                    {
+                        vector[k] <- (Real$Measure)/(2*N)
                     } else {
                         vector[k] <- 1-(Real$Measure)
                     }
@@ -578,9 +594,12 @@ robinRobust <- function(graph, graphRandom,
                                           e.weights=e.weights, 
                                           v.weights=v.weights, 
                                           nb.trials=nb.trials)
-                    if((measure=="vi")|(measure=="split.join"))
+                    if (measure=="vi")
                     {
-                        vectRandom[k] <- Random$Measure
+                        vectRandom[k] <- (Random$Measure)/log2(N)
+                    } else if(measure=="split.join")
+                    {
+                        vectRandom[k] <- (Random$Measure)/(2*N)
                     } else {
                         vectRandom[k] <- 1-(Random$Measure)
                     }
@@ -628,9 +647,12 @@ robinRobust <- function(graph, graphRandom,
                                         nb.trials=nb.trials,
                                         FUN=FUN)
                 Measure <- igraph::compare(comReal, comr, method=measure)
-                if((measure=="vi")|(measure=="split.join"))
+                if (measure=="vi")
                 {
-                    vector[k] <- Measure
+                    vector[k] <- Measure/log2(N)
+                } else if(measure=="split.join")
+                {
+                    vector[k] <- Measure/(2*N)
                 } else {
                     vector[k] <- 1-Measure
                 }
@@ -652,10 +674,13 @@ robinRobust <- function(graph, graphRandom,
                                         FUN=FUN)
                 Measure <- igraph::compare(comRandom, comr,
                                            method=measure)
-                if((measure=="vi")|(measure=="split.join"))
+                if(measure=="vi")
                 {
-                    vectRandom[k] <- Measure
-                } else {
+                    vectRandom[k] <- Measure/log2(N)
+                } else if(measure=="split.join")
+                {
+                    vectRandom[k] <- Measure/(2*N)
+                } else{
                     vectRandom[k] <- 1-Measure
                 }
                 
@@ -677,10 +702,13 @@ robinRobust <- function(graph, graphRandom,
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
                                         nb.trials=nb.trials)
-                    if((measure=="vi")|(measure=="split.join"))
+                    if(measure=="vi")
                     {
-                        vector[k] <- Real$Measure
-                    } else {
+                        vector[k] <- (Real$Measure)/log2(N)
+                    } else if(measure=="split.join")
+                    {
+                        vector[k] <- (Real$Measure)/(2*N)
+                    } else{
                         vector[k] <- 1-(Real$Measure)
                     }
                     measureReal1[count2] <- vector[k]
@@ -698,10 +726,13 @@ robinRobust <- function(graph, graphRandom,
                                             e.weights=e.weights, 
                                             v.weights=v.weights, 
                                             nb.trials=nb.trials)
-                    if((measure=="vi")|(measure=="split.join"))
+                    if(measure=="vi")
                     {
-                        vectRandom[k] <- Random$Measure
-                    } else {
+                        vectRandom[k] <- (Random$Measure)/log2(N)
+                    } else if(measure=="split.join")
+                    {
+                        vectRandom[k] <- (Random$Measure)/(2*N)
+                    } else{
                         vectRandom[k] <- 1-(Random$Measure)
                     }
                     measureRandom1[count2] <- vectRandom[k]
@@ -746,8 +777,6 @@ robinRobust <- function(graph, graphRandom,
 #' output of robinCompare.
 #' @param model2 The MeanRandom output of the robinRobust function or the Mean2 
 #' output of robinCompare.
-#' @param measure The stability measure: one of "vi", "nmi", "split.join", 
-#' "adjusted.rand".
 #' @param legend The legend for the graph. The default is c("model1", 
 #' "model2"). If using robinRobust is recommended c("real data", "null model"), 
 #' if using robinCompare, enter the names of the community detection 
@@ -763,29 +792,18 @@ robinRobust <- function(graph, graphRandom,
 #' graph <- prepGraph(file=my_file, file.format="gml")
 #' graphRandom <- random(graph=graph)
 #' Proc <- robinRobust(graph=graph, graphRandom=graphRandom, method="louvain",
-#' type="independent")
-#' plotRobin(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom,
-#' measure="vi", legend=c("real data", "null model"))
+#' measure="vi", type="independent")
+#' plotRobin(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom
+#' , legend=c("real data", "null model"))
 #' 
 plotRobin <- function(graph, model1, model2,
-                      measure= c("vi", "nmi","split.join", "adjusted.rand"),
                       legend=c("model1", "model2"),
                       title="Robin plot")
 {   
-    measure <- match.arg (measure)
-    if(measure=="vi")
-    {
-      N <- igraph::vcount(graph)
-      mvimodel1 <- as.vector((apply(model1, 2, mean))/log2(N))
-      mvimodel2 <- as.vector((apply(model2, 2, mean))/log2(N))
-    } else if(measure=="split.join") {
-      N <- igraph::vcount(graph)
-      mvimodel1 <- as.vector((apply(model1, 2, mean))/(2*N))
-      mvimodel2 <- as.vector((apply(model2, 2, mean))/(2*N))     
-    } else {
-      mvimodel1 <- as.vector((apply(model1, 2, mean)))
-      mvimodel2 <- as.vector((apply(model2, 2, mean)))
-    }
+    
+     mvimodel1 <- as.vector((apply(model1, 2, mean)))
+     mvimodel2 <- as.vector((apply(model2, 2, mean)))
+    
     
     percPert <- rep((seq(0,60,5)/100), 2)
     mvi <- c(mvimodel1, mvimodel2)
@@ -821,8 +839,9 @@ plotRobin <- function(graph, model1, model2,
 #' @param FUN2 personal designed function when method2 is "others". 
 #' see \code{\link{methodCommunity}}.
 #' @param measure The stability measure, one of "vi", "nmi", "split.join", 
-#' "adjusted.rand".
-#' @param type The type of robin costruction, dependent or independent.
+#' "adjusted.rand" all normalized and used as distances.
+#' "nmi" refers to 1- nmi and "adjusted.ran" refers to 1-adjusted.rand.
+#' @param type The type of robin construction, dependent or independent.
 #' @param weights This argument is not settable for "infomap" method.
 #' @param steps This argument is settable only for "leadingEigen"and"walktrap" 
 #' method.
@@ -831,11 +850,11 @@ plotRobin <- function(graph, model1, model2,
 #' @param v.weights This argument is settable only for "infomap" method.
 #' @param nb.trials This argument is settable only for "infomap" method.
 #' @param directed This argument is settable only for "edgeBetweenness" method.
-#' @param verbose flag for verbose output (default as FALSE).
+#' @param verbose flag for verbose output (default as TRUE).
 #' 
 #' @return A list object with two matrices:
 #' - the matrix "Mean1" with the means of the procedure for the first method 
-#' - the matrix "Mean2" with the means of the procedure for the second method.
+#' - the matrix "Mean2" with the means of the procedure for the second method
 #' 
 #' @import igraph
 #' @export
@@ -857,13 +876,14 @@ robinCompare <- function(graph,
                       type=c("independent", "dependent"),
                       directed=FALSE, weights=NULL, steps=4, 
                       spins=25, e.weights=NULL, v.weights=NULL, 
-                      nb.trials=10, verbose=FALSE)
+                      nb.trials=10, verbose=TRUE)
 {   
     method1 <- match.arg(method1)
     method2 <- match.arg(method2)
     type <- match.arg(type)
     measure <-match.arg(measure)
     nrep <- 10
+    N <- igraph::vcount(graph)
     comReal1 <- membershipCommunities(graph=graph, method=method1,
                                       FUN=FUN1,
                                       directed=directed,
@@ -930,12 +950,18 @@ robinCompare <- function(graph,
                                                e.weights=e.weights, 
                                                v.weights=v.weights, 
                                                nb.trials=nb.trials)
-                if((measure=="vi")|(measure=="split.join"))
+                if (measure=="vi")
                 {
                     vector1[k] <- igraph::compare(comr1, comReal1, 
-                                                  method=measure)
+                                                  method=measure)/log2(N)
                     vector2[k] <- igraph::compare(comr2, comReal2, 
-                                                  method=measure)
+                                                  method=measure)/log2(N)
+                } else if (measure=="split.join")
+                {
+                    vector1[k] <- igraph::compare(comr1, comReal1, 
+                                                  method=measure)/(2*N)
+                    vector2[k] <- igraph::compare(comr2, comReal2, 
+                                                  method=measure)/(2*N)
                 } else {
                     vector1[k] <- 1-(igraph::compare(comr1, comReal1, 
                                                      method=measure))
@@ -970,13 +996,19 @@ robinCompare <- function(graph,
                                                    e.weights=e.weights, 
                                                    v.weights=v.weights, 
                                                    nb.trials=nb.trials)
-                    if((measure=="vi")|(measure=="split.join"))
+                    if(measure=="vi")
                     {
                         vector1[k] <- igraph::compare(comr1, comReal1, 
-                                                      method=measure)
+                                                      method=measure)/log2(N)
                         vector2[k] <- igraph::compare(comr2, comReal2, 
-                                                      method=measure)
-                    } else {
+                                                      method=measure)/log2(N)
+                    } else if(measure=="split.join")
+                    {
+                        vector1[k] <- igraph::compare(comr1, comReal1, 
+                                                      method=measure)/(2*N)
+                        vector2[k] <- igraph::compare(comr2, comReal2, 
+                                                      method=measure)/(2*N)
+                    } else{
                         vector1[k] <- 1-(igraph::compare(comr1, comReal1, 
                                                          method=measure))
                         vector2[k] <- 1-(igraph::compare(comr2, comReal2, 
@@ -1038,13 +1070,19 @@ robinCompare <- function(graph,
                                                e.weights=e.weights, 
                                                v.weights=v.weights, 
                                                nb.trials=nb.trials)
-                if((measure=="vi")|(measure=="split.join"))
+                if(measure=="vi")
                 {
                     vector1[k] <- igraph::compare(comr1, comReal1, 
-                                                  method= measure)
+                                                  method= measure)/log2(N)
                     vector2[k] <- igraph::compare(comr2, comReal2, 
-                                                  method= measure)
-                } else {
+                                                  method= measure)/log2(N)
+                } else if(measure=="split.join")
+                {
+                    vector1[k] <- igraph::compare(comr1, comReal1, 
+                                                  method= measure)/(2*N)
+                    vector2[k] <- igraph::compare(comr2, comReal2, 
+                                                  method= measure)/(2*N)
+                } else{
                     vector1[k] <- 1-(igraph::compare(comr1, comReal1, 
                                                      method= measure))
                     vector2[k] <- 1-(igraph::compare(comr2, comReal2, 
@@ -1080,13 +1118,19 @@ robinCompare <- function(graph,
                                                    e.weights=e.weights, 
                                                    v.weights=v.weights, 
                                                    nb.trials=nb.trials)
-                    if((measure=="vi")|(measure=="split.join"))
+                    if(measure=="vi")
                     {
                         vector1[k] <- igraph::compare(comr1, comReal1, 
-                                                      method=measure)
+                                                      method=measure)/log2(N)
                         vector2[k] <- igraph::compare(comr2, comReal2, 
-                                                      method=measure)
-                    } else {
+                                                      method=measure)/log2(N)
+                    } else  if(measure=="split.join")
+                    {
+                        vector1[k] <- igraph::compare(comr1, comReal1, 
+                                                      method=measure)/(2*N)
+                        vector2[k] <- igraph::compare(comr2, comReal2, 
+                                                      method=measure)/(2*N)
+                    } else{
                         vector1[k] <- 1-(igraph::compare(comr1, comReal1, 
                                                          method=measure))
                         vector2[k] <- 1-(igraph::compare(comr2, comReal2, 
@@ -1139,26 +1183,15 @@ robinCompare <- function(graph,
 #' @keywords internal
 #' 
 #' 
+
 createITPSplineResult <- function(graph, model1, model2,
-                                measure= c("vi", "nmi","split.join", 
-                                           "adjusted.rand"),
                                 muParam=0, orderParam=4, nKnots=7, 
                                 BParam=10000, isPaired=TRUE) 
 {
-    measure <- match.arg (measure)
-    if(measure=="vi")
-    {
-    nOrder <- log2(igraph::gorder(graph))
-    modeled1 <- as.matrix(model1)/nOrder
-    modeled2 <- as.matrix(model2)/nOrder
-    }else if(measure=="split.join")
-    {N <- igraph::vcount(graph)
-     modeled1 <- as.matrix(model1)/(2*N)
-     modeled2 <- as.matrix(model2)/(2*N)
-    }else{
+
     modeled1 <- as.matrix(model1)
     modeled2 <- as.matrix(model2)   
-    }
+    
    
     
     ## Two populations Interval Testing Procedure with B-spline basis
@@ -1200,8 +1233,8 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
    #e la media delle distanze tra il random e la sua perturbazione
    res <- as.vector(ratios)
 
-   nRewire <- seq(0,60,5)
-   nrep <- 10
+   nRewire <- as.numeric(colnames(model1)) # generico anche se faccio un rewire fino al 40%
+   nrep <- dim(model1)[1]
    names(res) <- rep(nRewire, each=nrep)
 
    ratio <- t(res)#la trasposta del rapporto
@@ -1257,8 +1290,6 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
 #' output of the robinCompare function).
 #' @param model2 The MeanRandom output of the robinRobust function (or the 
 #' Mean2 output of the robinCompare function).
-#' @param measure The stability measure "vi", "nmi", "split.join", 
-#' "adjusted.rand".
 #' @param legend The legend for the graph. The default is c("model1", 
 #' "model2"). If using robinRobust is recommended c("real data", "null model"), 
 #' if using robinCompare, enter the names of the community detection 
@@ -1266,7 +1297,7 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
 #' @param verbose flag for verbose output (default as FALSE).
 #' 
 #' @return Two plots: the fitted curves and the adjusted p-values. A vector of the adjusted p-values. 
-#' @import igraph ggplot2 fdatest graphics qpdf
+#' @import qpdf igraph ggplot2 fdatest graphics
 #' @export
 #'
 #' @examples 
@@ -1275,14 +1306,13 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
 #' graphRandom <- random(graph=graph)
 #' Proc <- robinRobust(graph=graph, graphRandom=graphRandom, method="louvain",
 #' measure="vi",type="independent")
-#' robinFDATest(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom, 
-#' measure="vi",legend=c("real data", "null model"))
-robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
-                        "split.join", "adjusted.rand"),
+#' \donttest{robinFDATest(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom, 
+#' legend=c("real data", "null model"))}
+robinFDATest <- function(graph,model1,model2,
                         legend=c("model1", "model2"), verbose=FALSE)
 {
     if(verbose) cat("Computing Interval testing procedure.\n")
-    object <- createITPSplineResult(graph, model1, model2, measure)
+    object <- createITPSplineResult(graph, model1, model2)
     
     
     #Functional Data plot
@@ -1302,12 +1332,10 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
     plot1 <- ggplot2::ggplot(dataFrame, ggplot2::aes(x=as.numeric(percPert),
                  y=as.numeric(measures), color= model, group=s)) +
              ggplot2::geom_line() +
-             ggplot2::ylim(0,1)+
              ggplot2::xlab("Percentage of perturbation") +
              ggplot2::ylab("Measure")+
              ggplot2::ggtitle("Functional Data Analysis")+
              ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6))
-             
       
     
      
@@ -1319,24 +1347,24 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
      abscissa.pval <- rep(seq(xmin,xmax,len=p),time=2)
      pvalue <- c(object$pval,object$corrected.pval)
      type <- c(rep("pvalue",p),rep("pvalue.adj",p))
-     PdataFrame<-data.frame(cbind(abscissa.pval,pvalue,type))
+     PdataFrame <- data.frame(cbind(abscissa.pval,pvalue,type))
      plot2 <- ggplot2::ggplot(PdataFrame, ggplot2::aes(x=as.numeric(abscissa.pval),
                                                     y=as.numeric(pvalue), color= type)) +
               ggplot2::geom_point() +
-              ggplot2::ylim(0,1) +
               ggplot2::xlab("Percentage of perturbation") +
               ggplot2::ylab("p_value")+
               ggplot2::ggtitle("P-values")+
               ggplot2::scale_x_continuous(breaks = c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6))+
-              ggplot2::geom_hline(yintercept = 0.05,color = "red")
+              ggplot2::geom_hline(yintercept = 0.05,color = "red")+
+              ggplot2::lims(y=c(0,1))
      
     
     plot <- gridExtra::grid.arrange(plot1,plot2, ncol=2)
     print(plot)
    
-    adj.pvalue<-object$corrected.pval
-    pvalue<-object$pval
-    output<-list(adj.pvalue=adj.pvalue,
+    adj.pvalue <- object$corrected.pval
+    pvalue <- object$pval
+    output <- list(adj.pvalue=adj.pvalue,
                  pvalues=pvalue)
     
     return(output)
@@ -1351,8 +1379,6 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
 #' output of the robinCompare function).
 #' @param model2 The MeanRandom output of the robinRobust function (or the 
 #' Mean2 output of the robinCompare function).
-#' @param measure The stability measure "vi", "nmi", "split.join", 
-#' "adjusted.rand".
 #' @param verbose flag for verbose output (default as FALSE).
 #' 
 #' @return A list
@@ -1367,27 +1393,14 @@ robinFDATest <- function(graph,model1,model2, measure= c("vi", "nmi",
 #' Proc <- robinRobust(graph=graph, graphRandom=graphRandom, method="louvain",
 #' measure="vi",type="independent")
 #' robinAUC(graph=graph, model1=Proc$Mean, model2=Proc$MeanRandom)
-robinAUC <- function(graph, model1, model2, 
-                        measure= c("vi", "nmi","split.join", "adjusted.rand"),
+robinAUC <- function(graph, model1, model2,
                         verbose=FALSE)
 {
     if(verbose) cat("Computing area under the curve (AUC).\n")
-    measure <- match.arg (measure)
-    if(measure=="vi")
-    {
-        N <- igraph::vcount(graph)
-        mvimeanmodel1 <- cbind(as.vector((apply(model1, 2, mean))/log2(N)))
-        mvimeanmodel2 <- cbind(as.vector((apply(model2, 2, mean))/log2(N))) 
-    }else if(measure=="split.join")
-    {
-        N <- igraph::vcount(graph)
-        mvimeanmodel1 <- cbind(as.vector((apply(model1, 2, mean))/(2*N)))
-        mvimeanmodel2 <- cbind(as.vector((apply(model2, 2, mean))/(2*N)))     
-    }else
-    {
+    
         mvimeanmodel1 <- cbind(as.vector((apply(model1, 2, mean))))
         mvimeanmodel2 <- cbind(as.vector((apply(model2, 2, mean))))
-    }
+    
     area1 <- DescTools::AUC(x=(seq(0,60,5)/100), y=mvimeanmodel1, 
                           method ="spline")
     area2 <- DescTools::AUC(x=(seq(0,60,5)/100), y=mvimeanmodel2, 
