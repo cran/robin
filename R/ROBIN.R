@@ -1215,7 +1215,6 @@ createITPSplineResult <- function(graph, model1, model2,
 #' @param verbose flag for verbose output (default as FALSE).
 #' 
 #' @return A numeric value, the Bayes factor
-#' @import gprege 
 #' @importFrom stats sd var
 #' @export
 #'
@@ -1225,7 +1224,7 @@ createITPSplineResult <- function(graph, model1, model2,
 #' graphRandom <- random(graph=graph)
 #' Proc <- robinRobust(graph=graph, graphRandom=graphRandom, 
 #' method="louvain", measure="vi",type="independent")
-#' robinGPTest(model1=Proc$Mean,model2=Proc$MeanRandom)
+#' \donttest{robinGPTest(model1=Proc$Mean,model2=Proc$MeanRandom)}
 robinGPTest <- function(model1, model2, verbose=FALSE)
 { 
    ratios <- log2((model1+0.001)/(model2+0.001))
@@ -1269,7 +1268,7 @@ robinGPTest <- function(model1, model2, verbose=FALSE)
     rownames(dd) <- 'Measure'
     colnames(dd) <- dvet
     datadum <- rbind(dd, dd)
-    gpregeOutput <- gprege::gprege(data=datadum, inputs=dvet,
+    gpregeOutput <- .gprege(data=datadum, inputs=dvet,
                                   gpregeOptions=gpregeOptions)
     bf <- gpregeOutput$rankingScores[1]
 
