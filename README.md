@@ -1,4 +1,4 @@
-# robin <img align= "right" src="https://github.com/ValeriaPolicastro/Paper-Robin/blob/master/images/Logo2.png" width="100" height="100" /> 
+# robin <img src="man/img/logoRobin.png" align="right" height="138.5" />
  Available on CRAN https://CRAN.R-project.org/package=robin
 <br/><br>
 
@@ -30,19 +30,16 @@ of chance, merely due to edge positions in the network.
 my_network <- system.file("example/football.gml", package="robin")
 graph <- prepGraph(file=my_network, file.format="gml")
 graphRandom <- random(graph=graph)
-proc <- robinRobust(graph=graph, graphRandom=graphRandom, measure="vi", 
-                  method="louvain", type="independent")               
-plotRobin(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
-legend=c("real data", "null model"), measure="vi")
+proc <- robinRobust(graph=graph, graphRandom=graphRandom, measure="vi", method="louvain", type="independent")               
+plotRobin(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, legend=c("real data", "null model"))
 ```
 <p align="center">
-<img src="https://github.com/ValeriaPolicastro/Paper-Robin/blob/master/images/PlotRobin.png" width="500" height="500" />
+<img src="https://github.com/ValeriaPolicastro/Paper-Robin/blob/master/images/PlotRobin.png" width="350" height="300" />
 </p>
 
 ```{r}
 #For the testing:
-robinFDATest(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
-             measure="vi")
+robinFDATest(graph=graph, model1=proc$Mean, model2=proc$MeanRandom)
 robinGPTest(model1=proc$Mean, model2=proc$MeanRandom)
 ```
 
@@ -50,19 +47,17 @@ robinGPTest(model1=proc$Mean, model2=proc$MeanRandom)
 ```{r}
 my_network <- system.file("example/football.gml", package="robin")
 graph <- prepGraph(file=my_network, file.format="gml")
-comp <- robinCompare(graph=graph, method1="fastGreedy",
-                method2="louvain", measure="vi", type="independent")                
-plotRobin(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi", 
-legend=c("fastGreedy", "louvain"), title="FastGreedy vs Louvain")
+comp <- robinCompare(graph=graph, method1="fastGreedy", method2="louvain", measure="vi", type="independent")                
+plotRobin(graph=graph, model1=comp$Mean1, model2=comp$Mean2, legend=c("fastGreedy", "louvain"), title="FastGreedy vs Louvain")
 ```
 <p align="center">
-<img src="https://github.com/ValeriaPolicastro/Paper-Robin/blob/master/images/PlotCompare.png" width="500" height="500"/>
+<img src="https://github.com/ValeriaPolicastro/Paper-Robin/blob/master/images/PlotCompare.png" width="350" height="300"/>
 </p>
 In this example, the Louvain algorithm fits better the network of interest, as the curve of the stability measure varies less than the one obtained by the Fast greedy method.
 
 ```{r}
 #For the testing:
-robinFDATest(graph=graph, model1=comp$Mean1, model2=comp$Mean2, measure="vi")
+robinFDATest(graph=graph, model1=comp$Mean1, model2=comp$Mean2)
 robinGPTest(model1=comp$Mean1, model2=comp$Mean2)
 ```
 ## Reference

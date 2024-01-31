@@ -142,6 +142,10 @@ random <- function(graph, verbose=FALSE)
 #' @param nb.trials The number of attempts to partition the network (can be any
 #' integer value equal or larger than 1). This argument is settable only for
 #' "infomap" method.
+#' @param resolution only for "louvain" and "leiden". Optional resolution 
+#' parameter that allows the user to adjust the resolution parameter of the 
+#' modularity function that the algorithm uses internally. Lower values 
+#' typically yield fewer, larger clusters (default is 1).
 #' @param directed Logical constant, whether to calculate directed edge 
 #' betweenness for directed graphs. This argument is settable only for 
 #' "edgeBetweenness" method.
@@ -159,10 +163,11 @@ methodCommunity <- function(graph,
                             method=c("walktrap", "edgeBetweenness", 
                                     "fastGreedy", "louvain", "spinglass", 
                                     "leadingEigen", "labelProp", "infomap",
-                                    "optimal", "other"),
+                                    "optimal", "leiden", "other"),
                             FUN=NULL, directed=FALSE, weights=NULL, steps=4, 
                             spins=25, e.weights=NULL, v.weights=NULL, 
-                            nb.trials=10, verbose=FALSE)
+                            nb.trials=10, resolution = 1,
+                            verbose=FALSE)
 {   
     
     method <- match.arg(method)
@@ -179,7 +184,8 @@ methodCommunity <- function(graph,
     }
     communities <- switch(method, 
             optimal=igraph::cluster_optimal(graph, weights = weights),
-            louvain=igraph::cluster_louvain(graph=graph, weights=weights),
+            louvain=igraph::cluster_louvain(graph=graph, weights=weights, 
+                                            resolution=resolution),
             walktrap=igraph::cluster_walktrap(graph=graph, weights=weights, 
                                     steps=steps), 
             spinglass=igraph::cluster_spinglass(graph=graph, weights=weights, 
@@ -195,6 +201,8 @@ methodCommunity <- function(graph,
             labelProp=igraph::cluster_label_prop(graph=graph, weights=weights), 
             infomap=igraph::cluster_infomap(graph=graph, e.weights=e.weights, 
                                 v.weights=v.weights, nb.trials=nb.trials),
+            leiden=igraph::cluster_leiden(graph=graph,resolution_parameter=
+                                              resolution),
             other=FUN(graph, weights)
     )
     return(communities)
@@ -209,7 +217,7 @@ methodCommunity <- function(graph,
 #' @param graph The output of prepGraph.
 #' @param method The clustering method, one of "walktrap", "edgeBetweenness", 
 #' "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp", "infomap",
-#' "optimal".
+#' "optimal", "leiden","other".
 #' @param FUN in case the @method parameter is "other" there is the possibility 
 #' to use a personal function passing its name through this parameter.
 #' The personal parameter has to take as input the @graph and the @weights 
@@ -244,6 +252,8 @@ methodCommunity <- function(graph,
 #' @param directed Logical constant, whether to calculate directed edge 
 #' betweenness for directed graphs. This argument is settable only for 
 #' "edgeBetweenness" method.
+#' @param resolution only for "louvain" and "leiden". Optional resolution 
+#' parameter, lower values typically yield fewer, larger clusters (default=1).
 #' 
 #' @return Returns a numeric vector, one number for each vertex in the graph; 
 #' the membership vector of the community structure.
@@ -255,14 +265,14 @@ methodCommunity <- function(graph,
 #' graph <- prepGraph(file=my_file, file.format="gml")
 #' membershipCommunities (graph=graph, method="louvain")
 
-membershipCommunities<- function(graph,
+membershipCommunities <- function(graph,
                                  method=c("walktrap", "edgeBetweenness", 
                                         "fastGreedy", "louvain", "spinglass", 
                                         "leadingEigen", "labelProp", "infomap",
-                                        "optimal", "other"),
+                                        "optimal", "leiden","other"),
                                  FUN=NULL, directed=FALSE, weights=NULL, 
                                  steps=4, spins=25, e.weights=NULL, 
-                                 v.weights=NULL, nb.trials=10)
+                                 v.weights=NULL, nb.trials=10,resolution=1)
 {
     method <- match.arg(method)
     members <- membership(methodCommunity(graph=graph, method=method,
@@ -273,7 +283,8 @@ membershipCommunities<- function(graph,
                                             spins=spins, 
                                             e.weights=e.weights, 
                                             v.weights=v.weights, 
-                                            nb.trials=nb.trials))
+                                            nb.trials=nb.trials,
+                                          resolution = resolution))
     
     return(members)
 }
@@ -297,7 +308,7 @@ plotGraph <- function(graph)
 {
     graph_d3 <- networkD3::igraph_to_networkD3(g=graph)
     plot <- networkD3::simpleNetwork(graph_d3$links, opacity=0.8, zoom=TRUE,
-                                linkColour = "B1AEAE", nodeColour = "#2E66AC",
+                                nodeColour = "#2E66AC",
                                 fontSize=12)
     return(plot)
 }   
@@ -360,6 +371,8 @@ plotComm <- function(graph, members)
 #' @param v.weights This argument is settable only for "infomap" method
 #' @param nb.trials This argument is settable only for "infomap" method
 #' @param directed This argument is settable only for "edgeBetweenness" method
+#' @param resolution only for "louvain" and "leiden". Optional resolution 
+#' parameter, lower values typically yield fewer, larger clusters (default=1).
 #' @keywords internal
 
 rewireCompl <- function(data, number, community, 
@@ -370,7 +383,8 @@ rewireCompl <- function(data, number, community,
                         FUN=NULL,
                         measure= c("vi", "nmi","split.join", "adjusted.rand"),
                         directed=FALSE, weights=NULL, steps=4, spins=25, 
-                        e.weights=NULL, v.weights=NULL, nb.trials=10)
+                        e.weights=NULL, v.weights=NULL, nb.trials=10,
+                        resolution = 1)
 {
     method <- match.arg(method)
     measure <- match.arg (measure)
@@ -379,7 +393,8 @@ rewireCompl <- function(data, number, community,
     comR <- membershipCommunities(graph=graphRewire, method=method, FUN=FUN,
                             directed=directed, weights=weights, steps=steps, 
                             spins=spins, e.weights=e.weights, 
-                            v.weights=v.weights, nb.trials=nb.trials)
+                            v.weights=v.weights, nb.trials=nb.trials, 
+                            resolution=resolution)
     Measure <- igraph::compare(community, comR, method=measure)
     output <- list(Measure=Measure, graphRewire=graphRewire)
     
@@ -411,7 +426,7 @@ rewireOnl <- function(data, number)
 #' @param graphRandom The output of random function.
 #' @param method The clustering method, one of "walktrap", "edgeBetweenness", 
 #' "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp", "infomap",
-#' "optimal".
+#' "leiden","optimal".
 #' @param FUN in case the @method parameter is "other" there is the possibility 
 #' to use a personal function passing its name through this parameter.
 #' The personal parameter has to take as input the @graph and the @weights 
@@ -429,6 +444,8 @@ rewireOnl <- function(data, number)
 #' @param v.weights This argument is settable only for "infomap" method.
 #' @param nb.trials This argument is settable only for "infomap" method.
 #' @param directed This argument is settable only for "edgeBetweenness" method.
+#' @param resolution only for "louvain" and "leiden". Optional resolution 
+#' parameter, lower values typically yield fewer, larger clusters (default=1).
 #' @param verbose flag for verbose output (default as TRUE).
 #' 
 #' @return A list object with two matrices:
@@ -448,11 +465,11 @@ robinRobust <- function(graph, graphRandom,
                 method=c("walktrap", "edgeBetweenness", 
                          "fastGreedy", "louvain", "spinglass", 
                          "leadingEigen", "labelProp", "infomap",
-                         "optimal", "other"),
+                         "optimal","leiden","other"),
                 FUN=NULL, measure= c("vi", "nmi","split.join", "adjusted.rand"),
                 type=c("independent","dependent"), directed=FALSE, weights=NULL, 
                 steps=4, spins=25, e.weights=NULL, v.weights=NULL, 
-                nb.trials=10, verbose=TRUE) 
+                nb.trials=10, resolution=1, verbose=TRUE) 
 {   
     measure <- match.arg(measure)
     type<- match.arg(type)
@@ -466,7 +483,8 @@ robinRobust <- function(graph, graphRandom,
                                     spins=spins, 
                                     e.weights=e.weights, 
                                     v.weights=v.weights, 
-                                    nb.trials=nb.trials) # real network
+                                    nb.trials=nb.trials,
+                                    resolution=resolution) # real network
 
     comRandom <- membershipCommunities(graph=graphRandom, method=method,
                                         FUN=FUN,
@@ -476,7 +494,7 @@ robinRobust <- function(graph, graphRandom,
                                         spins=spins, 
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
-                                        nb.trials=nb.trials) # random network
+                                        nb.trials=nb.trials,resolution=resolution) # random network
     #stopifnot(length(table(comRandom))>1)
     #if(length(table(comRandom))==1) {stop("Not random graph")}
     de <- igraph::gsize(graph)
@@ -521,7 +539,8 @@ robinRobust <- function(graph, graphRandom,
                                     spins=spins, 
                                     e.weights=e.weights, 
                                     v.weights=v.weights, 
-                                    nb.trials=nb.trials)
+                                    nb.trials=nb.trials,
+                                    resolution=resolution)
                 if (measure=="vi")
                 {
                     vector[k] <- (Real$Measure)/log2(N)
@@ -545,7 +564,8 @@ robinRobust <- function(graph, graphRandom,
                                         spins=spins, 
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
-                                        nb.trials=nb.trials)
+                                        nb.trials=nb.trials,
+                                      resolution=resolution)
                 if (measure=="vi")
                 {
                     vectRandom[k] <- (Random$Measure)/log2(N)
@@ -561,7 +581,7 @@ robinRobust <- function(graph, graphRandom,
                 {
                     count2 <- count2+1
                     Real <- rewireCompl(data=graphRewire, 
-                                        number=round(0.01*z), 
+                                        number=round(0.01*de), 
                                         community=comReal, 
                                         method=method,
                                         measure=measure,
@@ -571,7 +591,8 @@ robinRobust <- function(graph, graphRandom,
                                         spins=spins, 
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
-                                        nb.trials=nb.trials)
+                                        nb.trials=nb.trials,
+                                        resolution=resolution)
                     if (measure=="vi")
                     {
                         vector[k] <- (Real$Measure)/log2(N)
@@ -583,7 +604,7 @@ robinRobust <- function(graph, graphRandom,
                     }
                     measureReal[count2, count] <- vector[k]
                     Random <- rewireCompl(data=graphRewireRandom, 
-                                          number=round(0.01*z),
+                                          number=round(0.01*de),
                                           community=comRandom,
                                           method=method,
                                           measure=measure,
@@ -593,7 +614,8 @@ robinRobust <- function(graph, graphRandom,
                                           spins=spins, 
                                           e.weights=e.weights, 
                                           v.weights=v.weights, 
-                                          nb.trials=nb.trials)
+                                          nb.trials=nb.trials,
+                                          resolution=resolution)
                     if (measure=="vi")
                     {
                         vectRandom[k] <- (Random$Measure)/log2(N)
@@ -645,7 +667,8 @@ robinRobust <- function(graph, graphRandom,
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
                                         nb.trials=nb.trials,
-                                        FUN=FUN)
+                                        FUN=FUN,
+                                        resolution=resolution)
                 Measure <- igraph::compare(comReal, comr, method=measure)
                 if (measure=="vi")
                 {
@@ -671,7 +694,8 @@ robinRobust <- function(graph, graphRandom,
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
                                         nb.trials=nb.trials,
-                                        FUN=FUN)
+                                        FUN=FUN,
+                                        resolution=resolution)
                 Measure <- igraph::compare(comRandom, comr,
                                            method=measure)
                 if(measure=="vi")
@@ -691,7 +715,7 @@ robinRobust <- function(graph, graphRandom,
                 {
                     count2 <- count2+1
                     ##REAL
-                    Real <- rewireCompl(data=graphRewire, number=round(0.01*z),
+                    Real <- rewireCompl(data=graphRewire, number=round(0.01*de),
                                         method=method,
                                         measure=measure,
                                         community=comReal,
@@ -701,7 +725,8 @@ robinRobust <- function(graph, graphRandom,
                                         spins=spins, 
                                         e.weights=e.weights, 
                                         v.weights=v.weights, 
-                                        nb.trials=nb.trials)
+                                        nb.trials=nb.trials,
+                                        resolution=resolution)
                     if(measure=="vi")
                     {
                         vector[k] <- (Real$Measure)/log2(N)
@@ -717,7 +742,7 @@ robinRobust <- function(graph, graphRandom,
                     Random <- rewireCompl(data=graphRewireRandom,
                                             method=method,
                                             measure=measure,
-                                            number=round(0.01*z),
+                                            number=round(0.01*de),
                                             community=comRandom,
                                             directed=directed,
                                             weights=weights,
@@ -725,7 +750,8 @@ robinRobust <- function(graph, graphRandom,
                                             spins=spins, 
                                             e.weights=e.weights, 
                                             v.weights=v.weights, 
-                                            nb.trials=nb.trials)
+                                            nb.trials=nb.trials,
+                                          resolution=resolution)
                     if(measure=="vi")
                     {
                         vectRandom[k] <- (Random$Measure)/log2(N)
@@ -800,25 +826,30 @@ plotRobin <- function(graph, model1, model2,
                       legend=c("model1", "model2"),
                       title="Robin plot")
 {   
-    
-     mvimodel1 <- as.vector((apply(model1, 2, mean)))
-     mvimodel2 <- as.vector((apply(model2, 2, mean)))
+    mvimodel1 <- as.vector((apply(model1, 2, mean)))
+    mvimodel2 <- as.vector((apply(model2, 2, mean)))
     
     
     percPert <- rep((seq(0,60,5)/100), 2)
     mvi <- c(mvimodel1, mvimodel2)
-    model <-c(rep(legend[1],13),rep(legend[2],13))
+    model <-c(rep("model1",13),rep("model2",13))
     dataFrame <- data.frame(percPert, mvi, model)
-    plot <- ggplot2::ggplot(dataFrame, aes(x = percPert, y = as.numeric(as.character(mvi)), 
-                                           colour = model, group = factor(model))) + 
-                     geom_line() + 
-                     geom_point() + 
-                     xlab("Percentage of perturbation") + 
-                     ylab("Measure") +
-                     ggplot2::ylim(0,1)+
-                     ggtitle(title)
+    plotModel <- ggplot2::ggplot(dataFrame, aes(x = percPert, 
+                                                y = as.numeric(as.character(mvi)),
+                                                colour = model, 
+                                                group = factor(model))) +
+        geom_line() +
+        geom_point() +
+        xlab("Percentage of perturbation") +
+        ylab("Measure") +
+        ggplot2::ylim(0,1)+
+        ggtitle(title)
     
-      
+    cols <- c("model1" = "#00BFC4", "model2" = "#F8766D")
+    plot <-  plotModel+ggplot2::scale_colour_manual(values = cols,
+                                                    breaks = c("model1", "model2"), 
+                                                    labels=c(legend[1], legend[2]))
+    
     return(plot)
 }
 
@@ -865,18 +896,18 @@ plotRobin <- function(graph, model1, model2,
 #' robinCompare(graph=graph, method1="louvain", 
 #' method2="fastGreedy", measure="vi", type="independent")
 robinCompare <- function(graph, 
-                      method1=c("walktrap", "edgeBetweenness", "fastGreedy",
-                                "leadingEigen","louvain","spinglass",
-                                "labelProp","infomap","optimal", "other"),
-                      method2=c("walktrap", "edgeBetweenness", "fastGreedy",
-                                "leadingEigen","louvain","spinglass",
-                                "labelProp","infomap","optimal", "other"),
-                      FUN1=NULL, FUN2=NULL,
-                      measure= c("vi", "nmi","split.join", "adjusted.rand"),
-                      type=c("independent", "dependent"),
-                      directed=FALSE, weights=NULL, steps=4, 
-                      spins=25, e.weights=NULL, v.weights=NULL, 
-                      nb.trials=10, verbose=TRUE)
+                         method1=c("walktrap", "edgeBetweenness", "fastGreedy",
+                                   "leadingEigen","louvain","spinglass",
+                                   "labelProp","infomap","optimal", "other"),
+                         method2=c("walktrap", "edgeBetweenness", "fastGreedy",
+                                   "leadingEigen","louvain","spinglass",
+                                   "labelProp","infomap","optimal", "other"),
+                         FUN1=NULL, FUN2=NULL,
+                         measure= c("vi", "nmi","split.join", "adjusted.rand"),
+                         type=c("independent", "dependent"),
+                         directed=FALSE, weights=NULL, steps=4, 
+                         spins=25, e.weights=NULL, v.weights=NULL, 
+                         nb.trials=10, verbose=TRUE)
 {   
     method1 <- match.arg(method1)
     method2 <- match.arg(method2)
@@ -902,7 +933,7 @@ robinCompare <- function(graph,
                                       e.weights=e.weights, 
                                       v.weights=v.weights, 
                                       nb.trials=nb.trials)
- 
+    
     de <- igraph::gsize(graph)
     Measure <- NULL
     vector1 <- NULL
@@ -1018,14 +1049,14 @@ robinCompare <- function(graph,
                     measureReal1[count2, count] <- vector1[k]
                     measureReal2[count2, count] <- vector2[k]
                     
-                   
+                    
                 }
                 Mean1[s, count] <- mean(vector1)
                 Mean2[s, count] <- mean(vector2)
             }
             if(verbose) cat("Perturbed ", z, " edges\n")
         }
-    #dependent    
+        #dependent    
     }else{
         z <- round((5*de)/100, 0)
         measureReal1 <- rep(0, nrep^2)
@@ -1138,11 +1169,11 @@ robinCompare <- function(graph,
                     }
                     measureReal11[count2] <- vector1[k]
                     measureReal22[count2] <- vector2[k]
-
+                    
                 }
                 Mean11[s] <- mean(measureReal11)
                 Mean22[s] <- mean(measureReal22)
-            
+                
             }
             graph <- igraph::intersection(graph, graphRewire)
             Mean1 <-cbind(Mean1,Mean11)
@@ -1159,6 +1190,7 @@ robinCompare <- function(graph,
 }
 
 
+
 ########################### TEST ROBIN ###################
 
 ################ CREATE ITPSpline ##################
@@ -1172,8 +1204,6 @@ robinCompare <- function(graph,
 #' output of the comparison function).
 #' @param model2 The MeanRandom output of the robinRobust function (or the 
 #' Mean2 output of the comparison function).
-#' @param measure The measure for the comparison of the communities "vi", "nmi",
-#' "split.join", "adjusted.rand".
 #' @param muParam the mu parameter for ITP2bspline (default 0).
 #' @param orderParam the order parameter for ITP2bspline (default 4).
 #' @param nKnots the nknots parameter for ITP2bspline (default 7).

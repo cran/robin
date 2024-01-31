@@ -60,7 +60,7 @@ plotComm(graph=graph, members=membersLouv)
 
 ## -----------------------------------------------------------------------------
 comp <- robinCompare(graph=graph, method1="fastGreedy",
-                method2="louvain", measure="vi", type="independent")
+                method2="louvain", measure="vi")
 
 ## -----------------------------------------------------------------------------
 plotRobin(graph=graph, model1=comp$Mean1, model2=comp$Mean2, 
