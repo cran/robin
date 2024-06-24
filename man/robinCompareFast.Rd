@@ -7,21 +7,16 @@
 robinCompareFast(
   graph,
   method1 = c("walktrap", "edgeBetweenness", "fastGreedy", "leadingEigen", "louvain",
-    "spinglass", "labelProp", "infomap", "optimal", "other"),
+    "spinglass", "labelProp", "infomap", "optimal", "leiden", "other"),
+  args1 = list(),
   method2 = c("walktrap", "edgeBetweenness", "fastGreedy", "leadingEigen", "louvain",
-    "spinglass", "labelProp", "infomap", "optimal", "other"),
+    "spinglass", "labelProp", "infomap", "optimal", "leiden", "other"),
+  args2 = list(),
   measure = c("vi", "nmi", "split.join", "adjusted.rand"),
-  ncores = 2,
   FUN1 = NULL,
   FUN2 = NULL,
-  directed = FALSE,
-  weights = NULL,
-  steps = 4,
-  spins = 25,
-  e.weights = NULL,
-  v.weights = NULL,
-  nb.trials = 10,
-  verbose = TRUE
+  verbose = TRUE,
+  BPPARAM = BiocParallel::bpparam()
 )
 }
 \arguments{
@@ -31,39 +26,31 @@ robinCompareFast(
 "edgeBetweenness", "fastGreedy", "louvain", "spinglass", "leadingEigen",
 "labelProp", "infomap","optimal".}
 
+\item{args1}{A \code{list} of arguments to be passed to the \code{method1} 
+(see i.e. \link[igraph]{cluster_leiden} for a list of possible method parameters).}
+
 \item{method2}{The second custering method one of "walktrap",
 "edgeBetweenness","fastGreedy", "louvain", "spinglass", "leadingEigen",
 "labelProp", "infomap","optimal".}
+
+\item{args2}{A \code{list} of arguments to be passed to the \code{method2}
+(see i.e. \link[igraph]{cluster_leiden} for a list of possible method parameters).}
 
 \item{measure}{The stability measure, one of "vi", "nmi", "split.join", 
 "adjusted.rand" all normalized and used as distances.
 "nmi" refers to 1- nmi and "adjusted.ran" refers to 1-adjusted.rand.}
 
-\item{ncores}{number of CPU cores to use.(default is 2) For a faster 
-execution we suggest to use ncores=(detectCores(logical = FALSE)-1)}
-
-\item{FUN1}{personal designed function when method1 is "others". 
+\item{FUN1}{personal designed function when \code{method1} is "others". 
 see \code{\link{methodCommunity}}.}
 
-\item{FUN2}{personal designed function when method2 is "others". 
+\item{FUN2}{personal designed function when \code{method2} is "others". 
 see \code{\link{methodCommunity}}.}
-
-\item{directed}{This argument is settable only for "edgeBetweenness" method.}
-
-\item{weights}{This argument is not settable for "infomap" method.}
-
-\item{steps}{This argument is settable only for "leadingEigen"and"walktrap" 
-method.}
-
-\item{spins}{This argument is settable only for "infomap" method.}
-
-\item{e.weights}{This argument is settable only for "infomap" method.}
-
-\item{v.weights}{This argument is settable only for "infomap" method.}
-
-\item{nb.trials}{This argument is settable only for "infomap" method.}
 
 \item{verbose}{flag for verbose output (default as TRUE).}
+
+\item{BPPARAM}{the BiocParallel object of class \code{bpparamClass} that 
+specifies the back-end to be used for computations. See
+  \code{\link[BiocParallel]{bpparam}} for details.}
 }
 \value{
 A list object with two matrices:
@@ -74,9 +61,4 @@ A list object with two matrices:
 This function compares two community detection algorithms.
 Is the parallelized and faster version of \code{\link{robinCompare}}
 }
-\examples{
-my_file <- system.file("example/football.gml", package="robin")
-graph <- prepGraph(file=my_file, file.format="gml")
-robinCompareFast(graph=graph, method1="louvain", 
-method2="fastGreedy", measure="vi")
-}
+\keyword{internal}

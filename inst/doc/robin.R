@@ -35,22 +35,19 @@ graphRandom <- random(graph=graph)
 graphRandom
 
 ## -----------------------------------------------------------------------------
-proc <- robinRobust(graph=graph, graphRandom=graphRandom, measure="vi", 
-                  method="louvain", type="independent")
+proc <- robinRobust(graph=graph, graphRandom=graphRandom, method="louvain")
 
 ## -----------------------------------------------------------------------------
-plotRobin(graph=graph, model1=proc$Mean, model2=proc$MeanRandom,
-legend=c("real data", "null model"))
+plot(proc)
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
-robinFDATest(graph=graph, model1=proc$Mean, model2=proc$MeanRandom, 
-            legend=c("real graph", "random graph"))
+robinFDATest(proc)
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
-robinGPTest(model1=proc$Mean, model2=proc$MeanRandom)
+robinGPTest(proc)
 
 ## -----------------------------------------------------------------------------
-robinAUC(graph=graph, model1=proc$Mean, model2=proc$MeanRandom)
+robinAUC(proc)
 
 ## -----------------------------------------------------------------------------
 membersFast <- membershipCommunities(graph=graph, method="fastGreedy")
@@ -59,20 +56,18 @@ plotComm(graph=graph, members=membersFast)
 plotComm(graph=graph, members=membersLouv)
 
 ## -----------------------------------------------------------------------------
-comp <- robinCompare(graph=graph, method1="fastGreedy",
-                method2="louvain", measure="vi")
+comp <- robinCompare(graph=graph, method1="fastGreedy", method2="louvain")
 
 ## -----------------------------------------------------------------------------
-plotRobin(graph=graph, model1=comp$Mean1, model2=comp$Mean2, 
-legend=c("fastGreedy", "louvain"), title="FastGreedy vs Louvain")
+plot(comp)
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
-robinFDATest(graph=graph, model1=comp$Mean1, model2=comp$Mean2)
+robinFDATest(comp)
 
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
-robinGPTest(model1=comp$Mean1, model2=comp$Mean2)
+robinGPTest(comp)
 
 ## -----------------------------------------------------------------------------
-robinAUC(graph=graph, model1=comp$Mean1, model2=comp$Mean2)
+robinAUC(comp)
 
