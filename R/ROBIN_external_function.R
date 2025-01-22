@@ -22,9 +22,7 @@
 #' @param measure The stability measure, one of "vi", "nmi", "split.join", 
 #' "adjusted.rand" all normalized and used as distances.
 #' "nmi" refers to 1- nmi and "adjusted.ran" refers to 1-adjusted.rand.
-#' @param type Character indicating "independent" or "dependent" for the old 
-#' robin type contruction. If NULL the new faster version is computed 
-#' (default NULL).
+#' @param type The type of robin construction, dependent or independent.
 #' @param dist Option to rewire in a manner that retains overall graph weight 
 #' regardless of distribution of edge weights. This option is invoked by putting 
 #' any text into this field. Defaults to "Other". See
@@ -46,11 +44,11 @@
 #' my_file <- system.file("example/football.gml", package="robin")
 #' graph <- prepGraph(file=my_file, file.format="gml")
 #' robinCompare(graph=graph, method1="louvain", args1 = list(resolution=0.8),
-#'             method2="leiden", args2=list(objective_function ="modularity"))
+#'             method2="leiden")
 ## Weighted example:
 # E(graph)$weight <- round(runif(ecount(graph),min=1,max=10))
 # robinCompare(graph=graph, method1="louvain", args1 = list(resolution=0.8), 
-# method2="leiden", args2=list(objective_function ="modularity"), dist="NegBinom")
+# method2="leiden", dist="NegBinom")
 
 robinCompare <-  function(graph, 
                           method1=c("walktrap", "edgeBetweenness", "fastGreedy",
@@ -65,21 +63,21 @@ robinCompare <-  function(graph,
                           args2=list(),
                           FUN1=NULL, FUN2=NULL,
                           measure=c("vi", "nmi","split.join", "adjusted.rand"),
-                          type=NULL,
+                          type="independent",
                           verbose=TRUE, dist="Other",BPPARAM=BiocParallel::bpparam())
 {
     
     methods <- c(method1, method2)
     
     # Weigthed version
-    if ( is.weighted(graph) )
+    if ( is_weighted(graph) )
     {
-       print("Weighted Network")
+       print("Weighted Network Parallel Function")
          output <- robinCompareFastWeight(graph=graph, method1=method1, args1=args1, 
             method2=method2, args2=args2, FUN1=FUN1, FUN2=FUN2, measure=measure, 
             verbose=verbose, dist=dist,BPPARAM=BPPARAM)
     } else {
-        if(any(type %in% c("independent", "dependent")))
+        if(type=="dependent")
         {
             
            print("Unweighted Network No Parallel Function")
@@ -102,7 +100,7 @@ robinCompare <-  function(graph,
    
     outputRobin <- c(output, model=methods, list(graph=graph))
 
-   class(outputRobin) <- "robin"
+    class(outputRobin) <- "robin"
     return(outputRobin)
     
 }
@@ -125,9 +123,7 @@ robinCompare <-  function(graph,
 #' @param measure The stability measure, one of "vi", "nmi", "split.join", 
 #' "adjusted.rand" all normalized and used as distances.
 #' "nmi" refers to 1- nmi and "adjusted.ran" refers to 1-adjusted.rand.
-#' @param type Character indicating "independent" or "dependent" for the old 
-#' robin type contruction. If NULL the new faster version is computed 
-#' (default NULL).
+#' @param type The type of robin construction, dependent or independent.
 #' @param ... other parameter.
 #' @param dist Option to rewire in a manner that retains overall graph weight 
 #' regardless of distribution of edge weights. This option is invoked by putting 
@@ -149,13 +145,12 @@ robinCompare <-  function(graph,
 #' my_file <- system.file("example/football.gml", package="robin")
 #' graph <- prepGraph(file=my_file, file.format="gml")
 #' graphRandom <- random(graph=graph)
-#' robinRobust(graph=graph, graphRandom=graphRandom, method="leiden",
-#'    objective_function = "modularity", measure="vi")
+#' robinRobust(graph=graph, graphRandom=graphRandom, method="leiden")
 ##    Weighted Example:
 # E(graph)$weight <- round(runif(ecount(graph),min=1,max=10))
 # graphRandom <- random(graph=graph)
 # robinRobust(graph=graph, graphRandom=graphRandom, method="leiden",
-#    objective_function = "modularity", measure="vi",dist="NegBinom")
+# dist="NegBinom")
 
 robinRobust <-  function(graph, graphRandom, 
                           method=c("walktrap", "edgeBetweenness", 
@@ -164,14 +159,15 @@ robinRobust <-  function(graph, graphRandom,
                                    "optimal", "leiden", "other"),
                           ...,
                           FUN=NULL, measure= c("vi", "nmi","split.join", "adjusted.rand"),
-                          type=NULL,verbose=TRUE, dist="Other",BPPARAM=BiocParallel::bpparam())
+                         type="independent",verbose=TRUE, dist="Other",BPPARAM=BiocParallel::bpparam())
 {
 
     methods <- c("real data", "null model")
+    
     # Weigthed version
-    if ( is.weighted(graph) )
+    if ( is_weighted(graph) )
     {
-        print("Weighted Network")
+        print("Weighted Network Parallel Function")
         output <- robinRobustFastWeighted(graph=graph, graphRandom=graphRandom, 
                                                       method=method,
                                                       ...,
@@ -180,7 +176,7 @@ robinRobust <-  function(graph, graphRandom,
                                            dist=dist,BPPARAM=BPPARAM)
     } else {
         
-        if(any(type %in% c("independent", "dependent")))
+        if(type=="dependent")
         {
             print("Unweighted Network No Parallel Function")
             # No Parallel
@@ -224,6 +220,7 @@ return(outputRobin)
 #' my_file <- system.file("example/football.gml", package="robin")
 #' graph <- prepGraph(file=my_file, file.format="gml")
 #' graphRandom <- random(graph=graph)
+
 random <- function(graph, dist="NegBinom", verbose=FALSE)
 {
     # Weigthed version

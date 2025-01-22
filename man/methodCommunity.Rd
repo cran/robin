@@ -8,6 +8,7 @@ methodCommunity(
   graph,
   method = c("walktrap", "edgeBetweenness", "fastGreedy", "louvain", "spinglass",
     "leadingEigen", "labelProp", "infomap", "optimal", "leiden", "other"),
+  leiden_objective_function = c("modularity", "CPM"),
   ...,
   FUN = NULL,
   verbose = FALSE
@@ -19,6 +20,9 @@ methodCommunity(
 \item{method}{The clustering method, one of "walktrap", "edgeBetweenness", 
 "fastGreedy", "louvain", "spinglass", "leadingEigen", "labelProp", "infomap",
 "optimal", "leiden","other".}
+
+\item{leiden_objective_function}{objective_function parameter for leiden only
+for method}
 
 \item{...}{additional parameters to use with any of the previous described 
 methods (see igraph package community detection methods for more details 

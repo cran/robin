@@ -79,9 +79,9 @@ plotComm <- function(graph, members)
 #' plot(comp)}
 #' 
 plot.robin <- function(x, title="Robin plot", ...)
-{   
-    
-    legend <- c(x$model1,x$model2)
+{
+    stopifnot(is(object=x, "robin"))
+    legend <- c(x$model1, x$model2)
     if (length(x$Mean1)==0)
     {
         model1 <- x$Mean
@@ -117,3 +117,101 @@ plot.robin <- function(x, title="Robin plot", ...)
     
     return(plot)
 }
+
+
+#' plotMultiCompare
+#' @description This function plots the curves of the measure of many community 
+#' detection algorithms compared.
+#' 
+#' @param ... all robin objects obtained from the comparison between one 
+#' community detection algorithm and all the others
+#' @param title character a title for the plot (default is "Robin plot")
+#' @param ylim1 logical for spanning the y axis from 0 to 1 (default is FALSE)
+#'
+#' @return a ggplot2 object
+#' @importFrom reshape2 melt 
+#' @export
+#'
+#' @examples
+#' \donttest{my_file <- system.file("example/football.gml", package="robin")
+#' graph <- prepGraph(file=my_file, file.format="gml")
+#' comp1 <- robinCompare(graph=graph, method1="fastGreedy",method2="louvain")
+#' comp2 <- robinCompare(graph=graph, method1="fastGreedy",method2="infomap")
+#' plotMultiCompare(comp1,comp2)}
+plotMultiCompare <- function(..., title="Robin plot", ylim1=FALSE)
+{
+    objs <- list(...)
+    lapply(objs, function(x){stopifnot(is(object=x, "robin"))}) 
+    modelsl <- lapply(objs, function(x)
+    {
+        legend <- c(x$model1, x$model2)
+        if (length(x$Mean1)==0)
+        {
+            model1 <- x$Mean
+            model2 <- x$MeanRandom 
+        }else{
+            model1 <- x$Mean1
+            model2 <- x$Mean2 
+        }
+        mvimodel1 <- as.vector((apply(model1, 2, mean)))
+        mvimodel2 <- as.vector((apply(model2, 2, mean)))
+        l <- list(mvimodel1, mvimodel2)
+        names(l) <- legend
+        return(l)
+    })
+    ll <- unlist(lapply(modelsl, function(x){ return(names(x))}))
+    llt <- table(ll)
+    notunique <- names(llt)[llt > 1]
+    l <- lapply(seq_along(modelsl), function(i)
+    {
+        x <- modelsl[[i]]
+        if(i !=1 )
+        {
+            j <- which(names(x)==notunique)
+            x <- x[-j]
+        }
+        return(x)
+    })
+    
+    m <- matrix(unlist(l), nrow = 13, byrow = FALSE)
+    colnames(m) <- unlist(lapply(l,names))
+    rownames(m) <- (seq(0,60,5)/100)
+    mm <- reshape2::melt(m)
+colnames(mm) <- c("perc", "Model", "measure")
+dataFrame <- data.frame(mm)
+ggp <- ggplot2::ggplot(dataFrame, aes(x=dataFrame$perc, y=dataFrame$measure,
+                                colour = dataFrame$Model,
+                                group = dataFrame$Model)) +
+    geom_line() +
+    geom_point() +
+    xlab("Percentage of perturbation") +
+    ylab("Measure") +
+    ggtitle(title)
+
+    
+    # ggp <- ggplot2::ggplot(mm, aes(x=Var1, y=value,
+    #                         colour = Var2,
+    #                         group = Var2)) +
+    #     geom_line() +
+    #     geom_point() +
+    #     xlab("Percentage of perturbation") +
+    #     ylab("Measure")+
+    #     labs(colour = "Model") + 
+    #     ggtitle(title)
+    
+    if(ylim1) ggp <- ggp+ggplot2::ylim(0,1)
+    return(ggp)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

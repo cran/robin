@@ -31,8 +31,84 @@ randomWeight <- function(graph, dist="Other", verbose=FALSE)
 }
 
 
-
-
+ ####### REWIRE WEIGHTED Internal #########
+# 
+# #' rewireWeight
+# #' @description makes the rewire for weighted networks
+# #' @param data The output of prepGraph
+# #' @param number Number of rewiring trials to perform.
+# #' @param type method to rewire weighted graphs
+# #' @keywords internal
+# rewireWeight <- function(data, number, type=NULL)
+# {
+#     if(type=="Shuffle")
+#     {
+#         print("Shuffle weights Method")
+#            <- sample(E(graph)$weight)
+#            
+#            
+#          
+#     }else if(type=="Garlaschelli"){
+#         print("Garlaschelli Method")
+#         
+#      
+#              }else if(type=="Sum"){
+#        
+#         print("Keep Sum and distribution weight Method") 
+#         # Set di n numeri
+# set.seed(123) # Imposta un seed per la riproducibilità
+# n_numbers <- rnorm(100, mean = 50, sd = 10) # Ad esempio, 100 numeri casuali da una distribuzione normale
+# 
+# # Subset di p numeri (p <= length(n_numbers))
+# p <- 10
+# p_subset <- sample(n_numbers, p)
+# 
+# # Funzione per ottenere un nuovo subset di p numeri mantenendo la somma e la distribuzione
+# generate_subset <- function(n_numbers, p_subset) {
+#     target_sum <- sum(p_subset) # La somma target da mantenere
+#     n_dist <- n_numbers / sum(n_numbers) # Distribuzione percentuale del set originale
+#     
+#     # Campiona p numeri dalla distribuzione di n_numbers
+#     sampled_indices <- sample(1:length(n_numbers), p, replace = TRUE)
+#     sampled_dist <- n_dist[sampled_indices]
+#     
+#     # Calcola i nuovi valori proporzionali alla distribuzione e alla somma target
+#     new_subset <- target_sum * (sampled_dist / sum(sampled_dist))
+#     
+#     # Aggiusta leggermente i valori per assicurarsi che la somma sia esattamente quella target
+#     diff <- target_sum - sum(new_subset)
+#     adjustment <- diff / p
+#     new_subset <- new_subset + adjustment
+#     
+#     return(new_subset)
+# }
+# 
+# # Applica la funzione
+# new_p_subset <- generate_subset(n_numbers, p_subset)
+# 
+# # Stampa il risultato
+# print(new_p_subset)
+# print(sum(new_p_subset)) # Dovrebbe essere uguale a sum(p_subset)
+#         
+#         
+#     }else {
+#     print("Rewire robin Method")
+#     graphRewire <- igraph::rewire(data, with=keeping_degseq(loops=FALSE,
+#                                                             niter=number))
+#      NotChaged <- igraph::intersection(graph, graphRewire)
+#      newWeight <- sample(E(difference(graph,graphRewire))$weight)
+#     EdgeAggiunti <- E(difference(graphRewire,graph))
+#      gg <- difference(graphRewire,graph)
+#      E(gg)$weight <- newWeight
+#     U <- union(gg,NotChaged)
+#      E(U)$weight_1[which(is.na(E(U)$weight_1), arr.ind = TRUE)] <- E(U)$weight[which(!is.na(E(U)$weight),
+#                                                                                      arr.ind = TRUE)]
+#      E(U)$weight <- E(U)$weight_1
+#      U <- delete_edge_attr(U, "weight_1")
+#      U <- delete_edge_attr(U, "weight_2")
+#      }
+#     return(U)
+# }
 
 
 ########## ROBIN COMPARE WEIGHTED#############
@@ -110,18 +186,20 @@ robinCompareFastWeight <- function(graph,
     if(verbose) cat("Detected robin method type independent\nIt can take time ... It depends on the size of the network.\n")
     vet1 <- seq(5, 60, 5)
     vet <- round(vet1*de/100, 0)
- 
+     #print(vet)
     parfunct <- function(z, graph, method1, method2, comReal1, comReal2, N, 
                          measure, args1, args2, FUN1, FUN2,dist)
     {
         #print(list(args1,args2))
         
-        
+        #print(z)
         
         MeansList <- lapply(1:10, function(s)
         {
     
-            adj <- igraph::as_adjacency_matrix(graph, attr="weight", sparse = FALSE)
+           #print(s)
+            #print(z)
+             adj <- igraph::as_adjacency_matrix(graph, attr="weight", sparse = FALSE)
             gR <- as.matrix(perturbR::rewireR(adj, z,dist = dist))
             graphRList <- igraph::graph_from_adjacency_matrix(gR,weighted = TRUE,
                                                               mode="undirected")
@@ -170,7 +248,7 @@ robinCompareFastWeight <- function(graph,
             }
             return(list("Measure1"=measure1, "Measure2"=measure2))
         })
-        
+
         
         m1 <- unlist(lapply(MeansList, function(mm)
         {
@@ -182,6 +260,7 @@ robinCompareFastWeight <- function(graph,
             mm$Measure2
         }))
         
+    
         return(list("Measure1"=m1,"Measure2"=m2))
     }
     
@@ -192,7 +271,7 @@ robinCompareFastWeight <- function(graph,
     
     Measure1 <- do.call(cbind, lapply(zlist, function(z) z$Measure1))
     Measure2 <- do.call(cbind, lapply(zlist, function(z) z$Measure2))
-    
+
     Measure1 <- cbind(rep(0, 10), Measure1)
     Measure2 <- cbind(rep(0, 10), Measure2)
     
